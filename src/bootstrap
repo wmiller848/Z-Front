@@ -1,0 +1,2 @@
+docker build -t market/nginx ./builders/nginx
+docker build -t market/golang ./builders/golang

@@ -1,0 +1,64 @@
+#!/bin/bash
+
+CONTAINER="MYSQL"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/mysql .`
+}
+
+bootstrap() {
+  STDOUT=`docker stop mysql-data`
+  STDOUT=`docker rm -f mysql-data`
+  STDOUT=`docker run --name=mysql-data -v /var/lib/mysql --entrypoint /bin/echo zfront/mysql "Mysql data volume"`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm -f mysql`
+  STDOUT=`docker rm -f mysql-data`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront -P -p 3306:3306 --volumes-from=mysql-data --name=mysql zfront/mysql`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop mariadb`
+}
+
+creds() {
+  STDOUT=`docker exec mysql cat /var/lib/mysql/shadow`
+}
+
+case $1 in
+	"build")
+    build
+    bootstrap
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "creds")
+    creds
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+    echo "creds - Display the mysql credentials"
+  ;;
+esac

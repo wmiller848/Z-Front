@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+create_stream() {
+  stream_server=$1
+  stream_key=$2
+  remote=$3
+  STDOUT=`mkdir -p /var/logs/zfront/muxer`
+  STDOUT=`touch /var/logs/zfront/muxer/std.log`
+  echo "Creating... $CONTAINER" >> /var/logs/zfront/muxer/std.log
+  STDOUT=`ffmpeg -y -re -i rtmp://$stream_server/stream/$stream_key -vcodec libvpx -b:v 512k -acodec libvorbis /tmp/stream/$stream_key.webm`
+  # udp://
+  #STDOUT=`ffmpeg -y -re -i rtmp://$stream_server/stream/$stream_key -vcodec libvpx -r 24 -b:v 512k -acodec libvorbis -b:a 64k /tmp/streaming/$stream_key.webm &`
+  sleep 1
+  echo `ls -la /tmp/stream` >> /var/logs/zfront/muxer/std.log
+  echo '----------\n\r----------' >> /var/logs/zfront/muxer/std.log
+  echo `ps -e -H` >> /var/logs/zfront/muxer/std.log
+}
+
+_destroy_stream() {
+  echo 'destroy'
+}
+
+case $1 in
+	"create")
+    create_stream $2 $3
+	;;
+  "help"|*)
+    echo "./zfront [CMD]"
+    echo "-------------"
+    echo "  create [steam_server:port] [stream_key] [target_server:port] - Create a new stream pulled from the host rtmp server"
+  ;;
+esac

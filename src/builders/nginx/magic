@@ -1,0 +1,48 @@
+#!/bin/bash
+
+CONTAINER="NGINX"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/nginx .`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm nginx`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront -P -p 80:80 -p 443:443 --name=nginx zfront/nginx`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop nginx`
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+  ;;
+esac

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+CONTAINER="IRC"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/irc .`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm irc`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront --user=zfront -P -p 6665-6669:6665-6669 --name=irc zfront/irc`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop irc`
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+  ;;
+esac

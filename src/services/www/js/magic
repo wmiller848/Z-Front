@@ -1,0 +1,70 @@
+#!/bin/bash
+
+CONTAINER="WWW:JS"
+
+build() {
+  echo "Building... $CONTAINER"
+  docker build -t zfront/www_js .
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm www_js`
+  STDOUT=`docker rm -v www_maleficjs-data`
+  STDOUT=`docker rm -v www_zcoderz-data`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  docker run --name=www_maleficjs-data -v /opt/maleficjs --entrypoint /bin/echo wmiller848/maleficjs "Maleficjs data volume"
+  docker run --name=www_zcoderz-data -v /opt/zcoderz --entrypoint /bin/echo zfront/zcoderz "Zcoderz data volume"
+
+  SRV1=`docker inspect www_maleficjs-data | grep "vfs/dir" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
+  SRV2=`docker inspect www_zcoderz-data | grep "vfs/dir" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
+
+  docker run -d -h zfront -P -v $SRV1/bin/release/malefic.min.js:/opt/www/js/malefic.min.js\
+                          -v $SRV2/c/build/libzcoderz.js:/opt/www/js/libzcoderz.js\
+                          -v $SRV2/js/zcoderz.js:/opt/www/js/zcoderz.js\
+                          --name=www_js zfront/www_js
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop www_js`
+  STDOUT=`docker stop www_maleficjs-data`
+  STDOUT=`docker stop www_zcoderz-data`
+}
+
+attach() {
+  echo "Attaching to... $CONTAINER"
+  docker exec -it www_js bash -l
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "attach")
+    attach
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+    echo "attach - Run a shell in the docker container"
+  ;;
+esac

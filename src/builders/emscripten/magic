@@ -1,0 +1,57 @@
+#!/bin/bash
+
+CONTAINER="EMSCRIPTEN"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/emscripten .`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm emscripten`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -it -h zfront -P --name=emscripten zfront/emscripten`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop emscripten`
+}
+
+attach() {
+  echo "Attaching to... $CONTAINER"
+  docker exec -it emscripten bash -l
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "attach")
+    attach
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+    echo "attach - Run a shell in the docker container"
+  ;;
+esac

@@ -1,0 +1,1 @@
+docker run -d -P -p 80:80 --name=www market/www /usr/local/nginx/sbin/nginx

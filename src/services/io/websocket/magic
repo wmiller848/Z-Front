@@ -1,0 +1,57 @@
+#!/bin/bash
+
+CONTAINER="WEBSOCKET"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/websocket .`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm websocket`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront -P -p 80:80 --name=rtmp zfront/websocket`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop websocket`
+}
+
+attach() {
+  echo "Attaching to... $CONTAINER"
+  docker exec -it websocket bash -l
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "attach")
+    attach
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+    echo "attach - Run a shell in the docker container"
+  ;;
+esac

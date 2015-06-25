@@ -1,0 +1,58 @@
+#!/bin/bash
+
+CONTAINER="MUXER"
+
+build() {
+  echo "Building... $CONTAINER"
+  STDOUT=`docker build -t zfront/muxer .`
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm muxer`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront -P --name=muxer zfront/muxer`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop muxer`
+}
+
+debug() {
+  echo "Debuging... $CONTAINER"
+  docker run -it -h zfront -P --name=muxer zfront/muxer bash -l
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "debug")
+    stop
+    clean
+    debug
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+  ;;
+esac

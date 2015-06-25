@@ -1,0 +1,48 @@
+#!/bin/bash
+
+CONTAINER="RUST"
+
+build() {
+  echo "Building... $CONTAINER"
+  docker build -t zfront/rust .
+}
+
+clean() {
+  echo "Cleaning $CONTAINER"
+  STDOUT=`docker rm rust`
+}
+
+start() {
+  echo "Starting... $CONTAINER"
+  STDOUT=`docker run -d -h zfront -P --name=rust zfront/rust`
+}
+
+stop() {
+  echo "Stoping... $CONTAINER"
+  STDOUT=`docker stop rust`
+}
+
+case $1 in
+	"build")
+    build
+	;;
+  "clean")
+    clean
+  ;;
+  "start")
+    stop
+    clean
+    start
+  ;;
+  "stop")
+    stop
+  ;;
+  "help"|*)
+    echo "./magic [CMD]"
+    echo "-------------"
+    echo "build - Build the docker image"
+    echo "clean - Remove the docker image"
+    echo "start - Start the docker container"
+    echo "stop - Stop the docker container"
+  ;;
+esac
