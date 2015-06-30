@@ -19,19 +19,28 @@ void usage_exit(void) {
   exit(EXIT_FAILURE);
 }
 
-Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t gl_buf_size) {
+Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_size, size_t gl_buf_size) {
   Stream *stream = (Stream*)malloc(sizeof(Stream));
+
+  size_t *size_t_ptr;
+  uint8_t *uint8_t_ptr;
+
+  printf("size_t* %u\n", sizeof(size_t_ptr));
+  printf("uint8_t* %u\n", sizeof(uint8_t_ptr));
+
+  printf("size_t %u\n", sizeof(*size_t_ptr));
+  printf("uint8_t %u\n", sizeof(*uint8_t_ptr));
 
   stream->net_packet_size = net_packet_size;
   stream->net_buf_fill = 0;
-  stream->net_buf_size = net_packet_size * 4;
+  stream->net_buf_size = net_buf_size;
   proc_info("Net Buf Size %u", (unsigned int)stream->net_buf_size);
-  stream->net_buf = (uint8_t*)malloc(sizeof(uint8_t) * stream->net_buf_size);
+  stream->net_buf = (uint8_t*)calloc(stream->net_buf_size, sizeof(uint8_t));
 
   stream->gl_buf_fill = 0;
   stream->gl_buf_size = gl_buf_size;
   proc_info("GL Buf Size %u", (unsigned int)stream->gl_buf_size);
-  stream->gl_buf = (uint8_t*)malloc(sizeof(uint8_t) * stream->gl_buf_size);
+  stream->gl_buf = (uint8_t*)calloc(stream->gl_buf_size, sizeof(uint8_t));
 
   stream->reader = vpx_video_stream_reader_open(header);
   if (!stream->reader)
@@ -88,21 +97,23 @@ uint8_t stream_write(Stream *stream, uint8_t *data, size_t data_size) {
   } else {
     stream->net_buf_size *= 2;
     stream->net_buf = (uint8_t*)realloc(stream->net_buf, sizeof(uint8_t) * stream->net_buf_size);
-    stream_write(stream, data, data_size);
-    return 1;
+    return stream_write(stream, data, data_size);
   }
 }
 
 uint8_t stream_write_chunk(Stream *stream, uint8_t *data, size_t data_size) {
-  if (stream->net_buf_fill + data_size < stream->net_buf_size) {
+  printf("Size %u\n", (unsigned int)data_size);
+
+  if (stream->net_buf_fill + data_size <= stream->net_buf_size) {
     memcpy(stream->net_buf + stream->net_buf_fill, data, data_size);
     stream->net_buf_fill += data_size;
     return 0;
+  } else {
+    return 1;
   }
-  return 1;
 }
 
-uint8_t stream_get_frame(Stream *stream, const uint8_t *gl_buf, const size_t *gl_buf_size) {
+uint8_t stream_parse(Stream *stream) {
   if (vpx_video_stream_reader_read_frame(stream->net_buf, stream->net_buf_fill, stream->reader)) {
 
     // const unsigned char *frame = vpx_video_reader_get_frame(reader, frame_size);
@@ -110,7 +121,7 @@ uint8_t stream_get_frame(Stream *stream, const uint8_t *gl_buf, const size_t *gl
 
     proc_info("VPX Frame Size %u", (unsigned int)stream->vpx_frame_size);
     if (vpx_codec_decode(&stream->codec, stream->vpx_frame, (unsigned int)stream->vpx_frame_size, NULL, 0))
-      die_codec(&stream->codec, "Failed to decode frame.");
+      die_codec(&stream->codec, "Failed to decode frame");
 
     while ((stream->vpx_img = vpx_codec_get_frame(&stream->codec, &stream->iter)) != NULL) {
       if (stream->vpx_img) {
@@ -163,12 +174,18 @@ uint8_t stream_get_frame(Stream *stream, const uint8_t *gl_buf, const size_t *gl
                 *(dst2++) = U; *(dst2++) = V; *(dst2++) = Y;
             }
         }
-        // memcpy(stream->buf + stream->buf_fill, data, data_size);
       }
-      // vpx_img_write(img, outfile);
     }
+    return 0;
+  }
+  return 1;
+}
+
+uint8_t stream_get_frame_info(Stream *stream, const uint8_t *gl_buf, size_t *gl_buf_size, size_t *net_bytes_read) {
+  if (stream->gl_buf && stream->gl_buf_size > 0) {
     gl_buf = stream->gl_buf;
-    gl_buf_size = &stream->gl_buf_size;
+    *gl_buf_size = stream->gl_buf_size;
+    *net_bytes_read = stream->vpx_frame_size + 12;
     return 0;
   }
   return 1;

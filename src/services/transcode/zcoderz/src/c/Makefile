@@ -4,7 +4,7 @@ EMAR=emar
 EMCC=emcc
 CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8
 COPT=O1
-EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_write","_stream_write_chunk","_stream_get_frame"]'
+EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_write","_stream_write_chunk","_stream_parse","_stream_get_frame_info"]'
 
 LIBVPX=/opt/vendor/libvpx/
 

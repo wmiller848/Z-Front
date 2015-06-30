@@ -29,15 +29,15 @@
         var arr = res.toArray();
         console.log(arr);
 
-        var ivf_header = arr.subarray(0, 32);
+        var ivf_header = new Uint8Array(arr.subarray(0, 32));
         console.log("ivf_header", ivf_header);
 
         var zcoderz = new ZCoderz(ivf_header);
         console.log("zcoderz", zcoderz);
 
         var start = 32;
-        var size = 2048;
-        var network_bytes = arr.subarray(start, (start + size));
+        var size = 32768; // frame size is about 26566
+        var network_bytes = new Uint8Array(arr.subarray(start, (start + size)));
         console.log("network_bytes", network_bytes);
         zcoderz.write(network_bytes);
 

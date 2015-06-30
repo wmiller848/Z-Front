@@ -2,6 +2,7 @@
 ###
 FROM zfront/emscripten:latest
 
+RUN yum -y update
 RUN yum -y install glibc-static
 
 ##########
@@ -11,10 +12,11 @@ WORKDIR /opt/vendor
 RUN wget http://downloads.sourceforge.net/project/check/check/0.9.14/check-0.9.14.tar.gz
 
 #RUN git clone https://github.com/webmproject/libvpx.git
-#RUN git clone https://github.com/wmiller848/libvpx.git /opt/vendor/libvpx
+#RUN git clone https://github.com/wmiller848/libvpx.git
 ADD ./libvpx /opt/vendor/libvpx
 
-RUN ls /opt/vendor/libvpx
+RUN find /opt/vendor/libvpx -exec touch {} \;
+RUN ls -la /opt/vendor/libvpx
 
 WORKDIR /opt/vendor/libvpx
 #RUN git checkout v1.4.0
