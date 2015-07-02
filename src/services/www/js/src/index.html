@@ -32,7 +32,7 @@
         var ivf_header = new Uint8Array(arr.subarray(0, 32));
         console.log("ivf_header", ivf_header);
 
-        var zcoderz = new ZCoderz(ivf_header);
+        var zcoderz = new ZFRONT.ZCoderz(ivf_header);
         console.log("zcoderz", zcoderz);
 
         var start = 32;

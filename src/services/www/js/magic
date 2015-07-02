@@ -24,7 +24,7 @@ start() {
 
   docker run -d -h zfront -P -v $SRV1/bin/release/malefic.min.js:/opt/www/js/malefic.min.js\
                           -v $SRV2/c/build/libzcoderz.js:/opt/www/js/libzcoderz.js\
-                          -v $SRV2/js/zcoderz.js:/opt/www/js/zcoderz.js\
+                          -v $SRV2/js/bin/dev/zcoderz.js:/opt/www/js/zcoderz.js\
                           --name=www_js zfront/www_js
 }
 

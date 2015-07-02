@@ -6,16 +6,16 @@ var ZCoderz = function(header) {
   self.header_buf_ptr = Module._malloc(header.length);
   Module.HEAPU8.set(header, self.header_buf_ptr);
 
-  var ptr_size = 4;
-  self.gl_frame_buf_ptr = Module._malloc(ptr_size);
-  self.gl_frame_buf_length_ptr = Module._malloc(ptr_size);
-  self.net_bytes_read_ptr = Module._malloc(ptr_size);
+  var ptr_byte_size = 4;
+  self.gl_frame_buf_ptr = Module._malloc(ptr_byte_size);
+  self.gl_frame_buf_length_ptr = Module._malloc(ptr_byte_size);
+  self.net_bytes_read_ptr = Module._malloc(ptr_byte_size);
 
   // http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
   var net_packet_size = 1400;
   var net_buf_size = 65536; // 2 ^ 16
   //
-  var gl_buf_size = 1024 * 1024 * 3;
+  var gl_buf_size = 1024 * 1024 * 3; // 3145728
   self.stream = _create_stream(self.header_buf_ptr, net_packet_size, net_buf_size, gl_buf_size);
   console.log(self.stream);
 };
@@ -42,11 +42,12 @@ ZCoderz.prototype.get_frame = function() {
   var status = _stream_get_frame_info(self.stream, self.gl_frame_buf_ptr, self.gl_frame_buf_length_ptr, self.net_bytes_read_ptr);
 
   var gl_frame_buf_length = Module.getValue(self.gl_frame_buf_length_ptr, 'i32');
+  console.log(gl_frame_buf_length);
   var gl_frame_buf = Module.HEAPU8.subarray(self.gl_frame_buf_ptr, self.gl_frame_buf_ptr + gl_frame_buf_length);
   var net_bytes_read = Module.getValue(self.net_bytes_read_ptr, 'i32');
-  console.log("Get Frame Status", status, gl_frame_buf, gl_frame_buf_length, net_bytes_read);
+  console.log("Get Frame Status", status, self.gl_frame_buf_ptr, gl_frame_buf, gl_frame_buf_length, net_bytes_read);
 
-  return self.gl_frame_buf;
+  return gl_frame_buf;
 };
 
 ZCoderz.prototype.destroy = function() {

@@ -3,7 +3,19 @@
 FROM zfront/emscripten:latest
 
 RUN yum -y update
-RUN yum -y install glibc-static
+RUN yum -y install glibc-static bzip2 fontconfig
+
+RUN npm install -g gulp phantomjs
+
+WORKDIR /opt/vendor
+RUN wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=https%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/8u45-b14/jdk-8u45-linux-x64.tar.gz"
+
+RUN tar -xvf jdk-8u45-linux-x64.tar.gz
+RUN rm jdk-8u45-linux-x64.tar.gz
+
+ENV JAVA_HOME=/opt/vendor/jdk1.8.0_45
+ENV JRE_HOME=/opt/vendor/jdk1.8.0_45/jre
+ENV PATH=$PATH:/opt/vendor/jdk-8u45-linux-x64/bin:/opt/vendor/jdk1.8.0_45/jre/bin
 
 ##########
 ## Libvpx
@@ -68,5 +80,10 @@ WORKDIR /opt/zcoderz/c
 
 RUN make javascript
 #RUN make testNative
+
+WORKDIR /opt/zcoderz/js
+
+RUN npm install
+RUN gulp
 
 CMD bash -l

@@ -1,0 +1,36 @@
+{
+  "name": "Zcoderz",
+  "version": "0.0.1",
+  "dependencies": {
+    "gulp": "latest",
+    "gulp-coffee": "latest",
+    "gulp-coffeelint": "latest",
+    "gulp-concat": "latest",
+    "gulp-yuicompressor": "latest",
+    "gulp-sourcemaps": "latest",
+    "gulp-jasmine-phantom": "latest",
+    "gulp-plumber": "latest",
+    "del": "latest",
+    "gulp-order": "latest"
+  },
+  "coffeelintConfig": {
+    "max_line_length": {
+      "level": "ignore"
+    },
+    "no_unnecessary_fat_arrows": {
+      "level": "ignore"
+    },
+    "prefer_english_operator": {
+      "level": "error"
+    },
+    "no_interpolation_in_single_quotes": {
+      "level": "error"
+    },
+    "no_implicit_parens": {
+      "level": "error"
+    },
+    "no_empty_param_list": {
+      "level": "error"
+    }
+  }
+}
