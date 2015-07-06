@@ -3,6 +3,7 @@
   <head>
     <title>Z-Front</title>
 
+    <script>Module={};Module.TOTAL_MEMORY = 60000000;</script>
     <script src="/js/malefic.min.js"></script>
     <script src="/js/libzcoderz.js"></script>
     <script src="/js/zcoderz.js"></script>
@@ -12,38 +13,73 @@
     <h1>Test</h1>
 
     <script>
-      console.log("Www-js");
+      // console.log("Www-js");
+      //
+      // var core = new Malefic.Core();
+      // console.log(core);
 
-      var core = new Malefic.Core();
-      console.log(core);
+      //
+      //
+
+      console.log(ZFRONT);
 
       var url = "/swfa.ivf";
-      var video = core.Ajax(url);
-      video.status = function(status) {
-        console.log(url + " loaded " + status);
+      var transport_promise = new ZFRONT.ZTransportHTTP(url);
+      var zcoderz = null;
+      //
+      //
+      transport_promise.Info = function(status, info) {
+        console.log(status, info);
       };
-      video.then = function(err, res) {
-        if (err) {
-          return console.error(err);
-        }
-        var arr = res.toArray();
-        console.log(arr);
+      transport_promise.Open = function(zstream) {
+        console.log(url + " opened")
+        zcoderz = new ZFRONT.ZCoderz(zstream);
 
-        var ivf_header = new Uint8Array(arr.subarray(0, 32));
-        console.log("ivf_header", ivf_header);
-
-        var zcoderz = new ZFRONT.ZCoderz(ivf_header);
-        console.log("zcoderz", zcoderz);
-
-        var start = 32;
-        var size = 32768; // frame size is about 26566
-        var network_bytes = new Uint8Array(arr.subarray(start, (start + size)));
-        console.log("network_bytes", network_bytes);
-        zcoderz.write(network_bytes);
-
-        var frame = zcoderz.get_frame();
-        console.log(frame);
+        console.log("Waiting for frame...")
+        zcoderz.On('frame', function(frame) {
+          console.log("frame", frame);
+        });
+      };
+      transport_promise.Close = function() {
+        console.log(url + " closed");
+        zcoderz.Destroy();
       }
+      transport_promise.Error = function(err) {
+        console.error(err);
+      }
+
+      //
+      //
+
+      // //
+      // //
+      // var url = "/swfa.ivf";
+      // var video = core.Ajax(url);
+      // video.status = function(status) {
+      //   console.log(url + " loaded " + status);
+      // };
+      // video.then = function(err, res) {
+      //   if (err) {
+      //     return console.error(err);
+      //   }
+      //   var arr = res.toArray();
+      //   console.log(arr);
+      //
+      //   var ivf_header = new Uint8Array(arr.subarray(0, 32));
+      //   console.log("ivf_header", ivf_header);
+      //
+      //   var zcoderz = new ZFRONT.ZCoderz(ivf_header);
+      //   console.log("zcoderz", zcoderz);
+      //
+      //   var start = 32;
+      //   var size = 32768; // frame size is about 26566
+      //   var network_bytes = new Uint8Array(arr.subarray(start, (start + size)));
+      //   console.log("network_bytes", network_bytes);
+      //   zcoderz.write(network_bytes);
+      //
+      //   var frame = zcoderz.get_frame();
+      //   console.log(frame);
+      // }
     </script>
   </body>
 </html>

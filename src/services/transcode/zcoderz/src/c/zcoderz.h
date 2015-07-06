@@ -40,6 +40,7 @@ void version();
 Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_size, size_t gl_buf_size);
 uint8_t destroy_stream(Stream *stream);
 uint8_t stream_flush(Stream *stream);
+uint8_t stream_seek(Stream *stream, uint8_t index);
 uint8_t stream_write(Stream *stream, uint8_t *data, size_t data_size);
 uint8_t stream_write_chunk(Stream *stream, uint8_t *data, size_t data_size);
 uint8_t stream_parse(Stream *stream);
