@@ -29,29 +29,20 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     @Info?(null, @headers)
 
     @zstream = new ZFRONT.ZStream()
-    @buffer_time = 100 # ms
+    @buffer_time = 32 # ms
     @Open?(@zstream)
 
-    # setInterval( (time) =>
-    #   @Tick(time)
-    # , @buffer_time)
+    setTimeout( =>
+      @Tick()
+    , 1000)
 
-    setTimeout( (time) =>
-      @Tick(time)
-    , @buffer_time)
-
-    setTimeout( (time) =>
-      @Tick(time)
-    , @buffer_time * 2)
-
-    setTimeout( (time) =>
-      @Tick(time)
-    , @buffer_time * 3)
-
-  Tick: (time) ->
+  Tick: ->
     chunk_size = @chunk_size
     chunk_size = @buf.length - @streamed if @streamed + chunk_size > @buf.length
     network_bytes = new Uint8Array(@buf.subarray(@streamed, (@streamed + chunk_size)))
     @streamed += network_bytes.length
     @zstream.Trigger('data', network_bytes)
-    @Close?() if @streamed >= @size
+    return @Close?() if @streamed >= @size
+    setTimeout( =>
+      @Tick()
+    , @buffer_time)

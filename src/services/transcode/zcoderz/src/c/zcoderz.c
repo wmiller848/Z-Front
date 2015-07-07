@@ -127,7 +127,7 @@ uint8_t stream_parse(Stream *stream) {
 
     // proc_info("VPX Frame Size %u", (unsigned int)stream->vpx_frame_size);
     if (vpx_codec_decode(&stream->codec, stream->vpx_frame, (unsigned int)stream->vpx_frame_size, NULL, 0))
-      die_codec(&stream->codec, "Failed to decode frame");
+      proc_warn("Failed to decode frame"); // die_codec(&stream->codec, "Failed to decode frame");
 
     while ((stream->vpx_img = vpx_codec_get_frame(&stream->codec, &stream->iter)) != NULL) {
       if (stream->vpx_img) {

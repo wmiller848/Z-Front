@@ -10,24 +10,19 @@
   </head>
 
   <body>
-    <h1>Test</h1>
+    <div style="margin:auto;text-align:center;">
+      <h1>Z-Front :: ZCoderz</h1>
+      <canvas width="1000px" height="500px" style="background-color:#000000;"></canvas>
+    </div>
 
     <script>
-      // console.log("Www-js");
-      //
-      // var core = new Malefic.Core();
-      // console.log(core);
-
-      //
-      //
 
       console.log(ZFRONT);
 
       var url = "/swfa.ivf";
       var transport_promise = new ZFRONT.ZTransportHTTP(url);
       var zcoderz = null;
-      //
-      //
+
       transport_promise.Info = function(status, info) {
         console.log(status, info);
       };
@@ -48,38 +43,6 @@
         console.error(err);
       }
 
-      //
-      //
-
-      // //
-      // //
-      // var url = "/swfa.ivf";
-      // var video = core.Ajax(url);
-      // video.status = function(status) {
-      //   console.log(url + " loaded " + status);
-      // };
-      // video.then = function(err, res) {
-      //   if (err) {
-      //     return console.error(err);
-      //   }
-      //   var arr = res.toArray();
-      //   console.log(arr);
-      //
-      //   var ivf_header = new Uint8Array(arr.subarray(0, 32));
-      //   console.log("ivf_header", ivf_header);
-      //
-      //   var zcoderz = new ZFRONT.ZCoderz(ivf_header);
-      //   console.log("zcoderz", zcoderz);
-      //
-      //   var start = 32;
-      //   var size = 32768; // frame size is about 26566
-      //   var network_bytes = new Uint8Array(arr.subarray(start, (start + size)));
-      //   console.log("network_bytes", network_bytes);
-      //   zcoderz.write(network_bytes);
-      //
-      //   var frame = zcoderz.get_frame();
-      //   console.log(frame);
-      // }
     </script>
   </body>
 </html>
