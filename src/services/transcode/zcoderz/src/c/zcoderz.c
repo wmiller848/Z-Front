@@ -49,7 +49,7 @@ Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_si
   stream->info = vpx_video_stream_reader_get_info(stream->reader);
   proc_info("Frame Width %u\n", stream->info->frame_width);
   proc_info("Frame Height %u\n", stream->info->frame_height);
-  proc_info("Frame Count %u\n", stream->info->frame_count);
+  // proc_info("Frame Count %u\n", stream->info->frame_count);
 
   stream->decoder = get_vpx_decoder_by_fourcc(stream->info->codec_fourcc);
   if (!stream->decoder)
@@ -89,12 +89,12 @@ uint8_t stream_flush(Stream *stream) {
   return 1;
 }
 
-uint8_t stream_seek(Stream *stream, uint8_t index) {
-  stream_write(stream, stream->net_buf + index, index + 1);
-  return 0;
+uint8_t stream_seek(Stream *stream, size_t index) {
+  printf("Index %u\r\n", (unsigned int)index);
+  return !stream_write(stream, stream->net_buf + index, index);
 }
 
-uint8_t stream_write(Stream *stream, uint8_t *data, size_t data_size) {
+uint8_t stream_write(Stream *stream, const uint8_t *data, const size_t data_size) {
   if (data_size < stream->net_buf_size) {
     memcpy(stream->net_buf, data, data_size);
     stream->net_buf_fill = data_size;
@@ -106,7 +106,7 @@ uint8_t stream_write(Stream *stream, uint8_t *data, size_t data_size) {
   }
 }
 
-uint8_t stream_write_chunk(Stream *stream, uint8_t *data, size_t data_size) {
+uint8_t stream_write_chunk(Stream *stream, const uint8_t *data, const size_t data_size) {
   // printf("Size %u\n", (unsigned int)data_size);
   if (stream->net_buf_fill + data_size <= stream->net_buf_size) {
     memcpy(stream->net_buf + stream->net_buf_fill, data, data_size);

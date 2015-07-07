@@ -11,9 +11,6 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     )
 
   data: (buf) ->
-
-    console.log("parse data")
-
     if not @started
       @started = true
       @init_stream(buf.subarray(0, 32))
@@ -25,6 +22,7 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     if not frame.err
       @Trigger('frame', frame)
       status = _stream_seek(@stream, frame.net_bytes_read)
+      console.error("Failed to seek stream") if not status
     else
       console.log(frame)
 
@@ -63,7 +61,7 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     gl_frame_buf_length = Module.getValue(@gl_frame_buf_length_ptr, 'i32')
     gl_frame_buf = Module.HEAPU8.subarray(@gl_frame_buf_ptr, @gl_frame_buf_ptr + gl_frame_buf_length)
     net_bytes_read = Module.getValue(@net_bytes_read_ptr, 'i32')
-    # console.log("Get Frame Status", status, @gl_frame_buf_ptr, gl_frame_buf, gl_frame_buf_length, net_bytes_read)
+    console.log("Get Frame Status", status, @gl_frame_buf_ptr, gl_frame_buf, gl_frame_buf_length, net_bytes_read)
     gl_frame_buf: gl_frame_buf,
     net_bytes_read: net_bytes_read
 

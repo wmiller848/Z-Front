@@ -22,11 +22,16 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     @streamed = 0
     @buf = res.toArray()
 
+    # 26610
+    console.log(@buf.subarray(32, 10000))
+    console.log(@buf.subarray(20000, 30000))
+
     @Info?(null, @headers)
 
     @zstream = new ZFRONT.ZStream()
-    @buffer_time = 50 # ms
+    @buffer_time = 100 # ms
     @Open?(@zstream)
+
     # setInterval( (time) =>
     #   @Tick(time)
     # , @buffer_time)
@@ -46,7 +51,6 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
   Tick: (time) ->
     chunk_size = @chunk_size
     chunk_size = @buf.length - @streamed if @streamed + chunk_size > @buf.length
-    console.log(chunk_size)
     network_bytes = new Uint8Array(@buf.subarray(@streamed, (@streamed + chunk_size)))
     @streamed += network_bytes.length
     @zstream.Trigger('data', network_bytes)
