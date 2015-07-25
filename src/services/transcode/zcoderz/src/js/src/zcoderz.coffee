@@ -40,7 +40,7 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     net_packet_size = 1400
     net_buf_size = 65536 * 4 # 2 ^ 16
     # Size of the total buffer
-    gl_buf_size = 1024 * 1024 * 3
+    gl_buf_size = 1024 * 512 * 3
     @stream = _create_stream(@header_buf_ptr, net_packet_size, net_buf_size, gl_buf_size)
 
   # TODO :: so much mem copy...

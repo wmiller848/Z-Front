@@ -12,12 +12,70 @@
   <body>
     <div style="margin:auto;text-align:center;">
       <h1>Z-Front :: ZCoderz</h1>
-      <canvas width="1000px" height="500px" style="background-color:#000000;"></canvas>
+      <canvas width="1024px" height="512px" style="background-color:#000000;" id="render_context"></canvas>
     </div>
 
     <script>
 
       console.log(ZFRONT);
+
+      var render_manger = {};
+      render_manger.canvas = document.getElementById('render_context');
+      render_manger.gl = render_manger.canvas.getContext("webgl");
+      render_manger.gl.viewportWidth = render_manger.canvas.width;
+      render_manger.gl.viewportHeight = render_manger.canvas.height;
+      render_manger.gl.clearColor(0.0, 0.0, 0.0, 1.0); // BLACK
+      render_manger.gl.enable(render_manger.gl.DEPTH_TEST); //Enable debth testing
+
+      render_manger.gl.viewport(0, 0, render_manger.gl.viewportWidth, render_manger.gl.viewportHeight);
+  	  var aspectRatio = render_manger.gl.viewportWidth / render_manger.gl.viewportHeight;
+
+      var vMatrix = mat4.create();
+      mat4.translate([0,0,10], vMatrix);
+
+      var pMatrix = mat4.create();
+      mat4.perspective(75, aspectRatio, 0.1, 10000, pMatrix);
+
+      var shader_protos = {
+        uvy: {
+          fsh : null,
+          vsh : null,
+          src : "shaders/ShaderUVY",
+          attribs : ["aVertexPosition", "aTextureCoord"],
+          uniforms : ["uViewMatrix", "uProjectionMatrix", "uSampler"]
+        }
+      };
+
+      var uvy_shader = new ZFRONT.ZShader(shader_protos);
+      uvy_shader.Ready = function() {
+        console.log("UVY Shader ready");
+      };
+
+      render_manger.render = function(frame) {
+        var gl = render_manger.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(
+          gl.TEXTURE_2D, // target
+          0, // mip level
+          gl.RGB, // internal format
+          gl.viewportWidth, // width
+          gl.viewportHeight, // height
+          0, // border
+          gl.RGB, //format
+          gl.UNSIGNED_BYTE, // type
+          frame.gl_frame_buf // texture data
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        console.log(texture);
+      };
+
+      //
+      //
 
       var url = "/swfa.ivf";
       var transport_promise = new ZFRONT.ZTransportHTTP(url);
@@ -27,21 +85,23 @@
         console.log(status, info);
       };
       transport_promise.Open = function(zstream) {
-        console.log(url + " opened")
+        console.log(url + " opened");
         zcoderz = new ZFRONT.ZCoderz(zstream);
 
-        console.log("Waiting for frame...")
+        console.log("Waiting for frame...");
         zcoderz.On('frame', function(frame) {
           console.log("frame", frame);
+          render_manger.render(frame);
         });
       };
       transport_promise.Close = function() {
         console.log(url + " closed");
         zcoderz.Destroy();
-      }
+      };
       transport_promise.Error = function(err) {
         console.error(err);
-      }
+      };
+
 
     </script>
   </body>

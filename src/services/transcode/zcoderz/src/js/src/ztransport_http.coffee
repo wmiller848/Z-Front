@@ -43,6 +43,7 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     @streamed += network_bytes.length
     @zstream.Trigger('data', network_bytes)
     return @Close?() if @streamed >= @size
-    setTimeout( =>
-      @Tick()
-    , @buffer_time)
+
+    #setTimeout( =>
+    #  @Tick()
+    #, @buffer_time)
