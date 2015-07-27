@@ -1,0 +1,4 @@
+emscripten:
+  extends:
+    file: builders/emscripten/docker-compose.yml
+    service: builder

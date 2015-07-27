@@ -1,6 +1,5 @@
 FROM fedora:latest
 
-RUN yum -y update
 RUN yum -y install mariadb-server pwgen psmisc net-tools hostname
 RUN yum clean all
 
