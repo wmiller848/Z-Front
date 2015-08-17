@@ -1,0 +1,14 @@
+maleficjs_data:
+  image: wmiller848/maleficjs
+  command: echo "MaleficJS Data"
+zcoderz_data:
+  extends:
+    file: services/transcode/zcoderz/docker-compose.yml
+    service: zcoderz
+www_js:
+  extends:
+    file: services/www/js/docker-compose.yml
+    service: www_js
+  volumes_from:
+    - maleficjs_data
+    - zcoderz_data

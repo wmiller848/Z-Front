@@ -6,7 +6,7 @@ class window.ZFRONT.ZShader extends window.Malefic.Core
     super('ZShader')
 
     @shader = {}
-    
+
     @fsh_loaded = false
     @shader_fsh_source = @Ajax(shader_proto.src + '.fsh')
     @shader_fsh_source.Status = (status) =>
@@ -51,22 +51,22 @@ class window.ZFRONT.ZShader extends window.Malefic.Core
     attribs = shader_proto.attribs
     if attribs
       shaderProgram.attribute = {}
-      for i in attribs
-        attrib = attribs[i]
+      for attrib in attribs
         shaderProgram.attribute[attrib] = gl.getAttribLocation(shaderProgram, attrib)
-        if shaderProgram.attribute[attrib] != -1
+        if shaderProgram.attribute[attrib] isnt -1
           console.log("Shader added attribute: " + attrib)
           console.log("Attribute location " + shaderProgram.attribute[attrib])
         else
           console.log("Attribute " + attrib + " not found")
 
-    uniforms = shaderProto.uniforms
+    gl.useProgram(shaderProgram)
+    
+    uniforms = shader_proto.uniforms
     if uniforms
       shaderProgram.uniform = {}
-      for i in uniforms
-        uniform = uniforms[i]
+      for uniform in uniforms
         shaderProgram.uniform[uniform] = gl.getUniformLocation(shaderProgram, uniform)
-        if shaderProgram.uniform[uniform] != -1)
+        if shaderProgram.uniform[uniform] isnt -1
           console.log("Shader added uniform: " + uniform)
           console.log("Uniform location " + shaderProgram.uniform[uniform])
         else

@@ -7,6 +7,7 @@
     <script src="/js/malefic.min.js"></script>
     <script src="/js/libzcoderz.js"></script>
     <script src="/js/zcoderz.js"></script>
+    <script src="/vendor/glmatrix.js"></script>
   </head>
 
   <body>
@@ -24,17 +25,30 @@
       render_manger.gl = render_manger.canvas.getContext("webgl");
       render_manger.gl.viewportWidth = render_manger.canvas.width;
       render_manger.gl.viewportHeight = render_manger.canvas.height;
-      render_manger.gl.clearColor(0.0, 0.0, 0.0, 1.0); // BLACK
+      render_manger.gl.clearColor(1.0, 0.0, 0.0, 1.0); // Red
       render_manger.gl.enable(render_manger.gl.DEPTH_TEST); //Enable debth testing
 
       render_manger.gl.viewport(0, 0, render_manger.gl.viewportWidth, render_manger.gl.viewportHeight);
   	  var aspectRatio = render_manger.gl.viewportWidth / render_manger.gl.viewportHeight;
 
+      var mMatrix = mat4.create();
+      mat4.identity(mMatrix);
+      // mat4.rotate(mMatrix, 0, [0.0, 1.0, 0.0]);
+      // mat4.translate(mMatrix, [0.0, 0.0, 1.0]);
+
       var vMatrix = mat4.create();
-      mat4.translate([0,0,10], vMatrix);
+      mat4.identity(vMatrix);
+      // mat4.translate(vMatrix, [-1.0, 0.0, 1.0]);
+
+      var mvMatrix = mat4.create();
+      mat4.identity(mvMatrix);
+      mat4.multiply(mMatrix, vMatrix, mvMatrix);
 
       var pMatrix = mat4.create();
-      mat4.perspective(75, aspectRatio, 0.1, 10000, pMatrix);
+      // mat4.perspective(75, aspectRatio, 0.1, 1000, pMatrix);
+      mat4.ortho(-render_manger.gl.viewportWidth, render_manger.gl.viewportWidth, -render_manger.gl.viewportHeight, render_manger.gl.viewportHeight, -1, 1, pMatrix);
+
+      console.log(pMatrix, mMatrix, vMatrix, mvMatrix);
 
       var shader_protos = {
         uvy: {
@@ -42,20 +56,61 @@
           vsh : null,
           src : "shaders/ShaderUVY",
           attribs : ["aVertexPosition", "aTextureCoord"],
+          uniforms : ["uViewMatrix", "uProjectionMatrix", "uSamplerY", "uSamplerU", "uSamplerV"]
+        },
+        rgb: {
+          fsh : null,
+          vsh : null,
+          src : "shaders/ShaderRGB",
+          attribs : ["aVertexPosition", "aTextureCoord"],
           uniforms : ["uViewMatrix", "uProjectionMatrix", "uSampler"]
         }
       };
 
-      var uvy_shader = new ZFRONT.ZShader(shader_protos);
-      uvy_shader.Ready = function() {
-        console.log("UVY Shader ready");
+      // var uvy_shader = new ZFRONT.ZShader(render_manger.gl, shader_protos.uvy);
+      // uvy_shader.Ready = function() {
+      //   console.log("UVY Shader ready");
+      //   console.log(uvy_shader);
+      // };
+
+      var rgb_shader = new ZFRONT.ZShader(render_manger.gl, shader_protos.rgb);
+      rgb_shader.Ready = function() {
+        console.log("RGB Shader ready");
+        console.log(rgb_shader);
       };
 
       render_manger.render = function(frame) {
         var gl = render_manger.gl;
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        //
+        //
+        // var textures = {
+        //   'tex_y': gl.createTexture(),
+        //   'tex_u': gl.createTexture(),
+        //   'tex_v': gl.createTexture()
+        // };
+        // console.log(textures);
+
+        // var pixels = [frame.gl_luma_frame_buf, frame.gl_chromaB_frame_buf, frame.gl_chromaR_frame_buf]
+        // var widths = [1024, 1024 / 2, 1024 / 2 ];
+        // var heights = [512, 512 / 2, 512 / 2 ];
+        // var i = 0;
+        // for (var key in textures) {
+        //   var texture = textures[key];
+        //   gl.bindTexture(gl.TEXTURE_2D, texture);
+        //   gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        //   gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, widths[i], heights[i], 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, pixels[i]);
+        //   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        //   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //   gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        //   gl.generateMipmap(gl.TEXTURE_2D);
+        //   gl.bindTexture(gl.TEXTURE_2D, null);
+        //   i++;
+        // }
+
+        var rgb_texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, rgb_texture);
         gl.texImage2D(
           gl.TEXTURE_2D, // target
           0, // mip level
@@ -65,19 +120,101 @@
           0, // border
           gl.RGB, //format
           gl.UNSIGNED_BYTE, // type
-          frame.gl_frame_buf // texture data
+          frame.gl_rgb_frame_buf // texture data
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         gl.generateMipmap(gl.TEXTURE_2D);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        console.log(texture);
+
+        //
+        //
+        var buffer_object = {};
+        buffer_object.vertex_position_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer_object.vertex_position_buffer);
+        var vertices = new Float32Array([
+    	     // x, y, z
+          -render_manger.gl.viewportWidth, -render_manger.gl.viewportHeight,  0.0,
+           render_manger.gl.viewportWidth, -render_manger.gl.viewportHeight,  0.0,
+           render_manger.gl.viewportWidth,  render_manger.gl.viewportHeight,  0.0,
+          -render_manger.gl.viewportWidth,  render_manger.gl.viewportHeight,  0.0
+        ]);
+
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        buffer_object.vertex_position_buffer.itemSize = 3;
+        buffer_object.vertex_position_buffer.numItems = vertices.length/3;
+
+        //
+        //
+        var texture_coords = new Float32Array([
+          // u, v
+          0.0, 1.0,
+          1.0, 1.0,
+          1.0, 0.0,
+          0.0, 0.0
+        ]);
+
+        buffer_object.vertex_texture_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer_object.vertex_texture_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texture_coords, gl.STATIC_DRAW);
+        buffer_object.vertex_texture_buffer.itemSize = 2;
+        buffer_object.vertex_texture_buffer.numItems = texture_coords.length/2;
+
+        //
+        //
+        buffer_object.vertex_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer_object.vertex_index_buffer);
+        vertex_indices = new Uint16Array([
+        	 0, 1, 2,
+           0, 2, 3
+       	]);
+
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, vertex_indices, gl.STATIC_DRAW);
+        buffer_object.vertex_index_buffer.itemSize = 1;
+        buffer_object.vertex_index_buffer.numItems = vertex_indices.length/1;
+
+        // var shader = uvy_shader.shaderProgram;
+        var shader = rgb_shader.shaderProgram;
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.enableVertexAttribArray(shader.attribute.aVertexPosition);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer_object.vertex_position_buffer);
+        gl.vertexAttribPointer(shader.attribute.aVertexPosition, buffer_object.vertex_position_buffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(shader.attribute.aTextureCoord);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer_object.vertex_texture_buffer);
+        gl.vertexAttribPointer(shader.attribute.aTextureCoord, buffer_object.vertex_texture_buffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer_object.vertex_index_buffer);
+        gl.uniformMatrix4fv(shader.uniform.uProjectionMatrix, false, pMatrix);
+        gl.uniformMatrix4fv(shader.uniform.uViewMatrix, false, mvMatrix);
+
+        gl.activeTexture(gl.TEXTURE0);
+	      gl.bindTexture(gl.TEXTURE_2D, rgb_texture);
+        gl.uniform1i(shader.uniform.uSampler, 0);
+
+        // gl.activeTexture(gl.TEXTURE0);
+	      // gl.bindTexture(gl.TEXTURE_2D, textures.tex_y);
+        // gl.uniform1i(shader.uniform.uSamplerY, 0);
+        //
+        // gl.activeTexture(gl.TEXTURE1);
+	      // gl.bindTexture(gl.TEXTURE_2D, textures.tex_u);
+        // gl.uniform1i(shader.uniform.uSamplerU, 1);
+        //
+        // gl.activeTexture(gl.TEXTURE2);
+	      // gl.bindTexture(gl.TEXTURE_2D, textures.tex_v);
+        // gl.uniform1i(shader.uniform.uSamplerV, 2);
+
+        gl.drawElements(gl.TRIANGLES, buffer_object.vertex_index_buffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.disable(gl.DEPTH_TEST);
       };
 
       //
       //
 
       var url = "/swfa.ivf";
+      // var url = "/300.ivf";
       var transport_promise = new ZFRONT.ZTransportHTTP(url);
       var zcoderz = null;
 
@@ -106,3 +243,178 @@
     </script>
   </body>
 </html>
+
+<!-- SkyBox.prototype.init = function(gl, callback)
+{
+	var self = this;
+	var bufferObject = {};
+   	var vertices = [];
+	var textureCoords = [];
+	var vertexIndices = [];
+
+	bufferObject.vertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,bufferObject.vertexPositionBuffer);
+    vertices =
+    [
+	    //x,y,z
+	   	// Front face
+	   -1.0, -1.0,  1.0,
+	    1.0, -1.0,  1.0,
+	    1.0,  1.0,  1.0,
+	   -1.0,  1.0,  1.0,
+		// Back face
+	   -1.0, -1.0, -1.0,
+	   -1.0,  1.0, -1.0,
+	    1.0,  1.0, -1.0,
+	    1.0, -1.0, -1.0,
+		// Top face
+	   -1.0,  1.0, -1.0,
+	   -1.0,  1.0,  1.0,
+	    1.0,  1.0,  1.0,
+		1.0,  1.0, -1.0,
+		// Bottom face
+	   -1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+	    1.0, -1.0,  1.0,
+	   -1.0, -1.0,  1.0,
+		// Right face
+	    1.0, -1.0, -1.0,
+	    1.0,  1.0, -1.0,
+	    1.0,  1.0,  1.0,
+	    1.0, -1.0,  1.0,
+		// Left face
+	   -1.0, -1.0, -1.0,
+	   -1.0, -1.0,  1.0,
+	   -1.0,  1.0,  1.0,
+	   -1.0,  1.0, -1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+    bufferObject.vertexPositionBuffer.itemSize = 3;
+    bufferObject.vertexPositionBuffer.numItems = 24;
+
+    textureCoords =
+    [
+    	// Front face
+       	0.0,1.0,
+       	1.0,1.0,
+       	1.0,0.0,
+       	0.0,0.0,
+		// Back face
+       	0.0,1.0,
+       	0.0,0.0,
+       	1.0,0.0,
+       	1.0,1.0,
+		// Top face
+        0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+		// Bottom face
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+		// Right face
+       	0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+		// Left face
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+  	];
+
+  	if(self.textureArray != null)
+  	{
+		bufferObject.vertexTextureBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER,bufferObject.vertexTextureBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(textureCoords),gl.STATIC_DRAW);
+    	bufferObject.vertexTextureBuffer.itemSize = 2;
+    	bufferObject.vertexTextureBuffer.numItems = textureCoords.length/2;
+    	bufferObject.shaderType = K_ShaderTexture;
+	}
+	else {
+		bufferObject.vertexColorBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, bufferObject.vertexColorBuffer);
+		var colors = [];
+		var k = vertices.length/3;
+		for(var i=0;i<k;i++)
+		{
+			for(var j=0;j<4;j++)
+			{
+				if(j % 4 == 0)
+				{
+
+				}
+				else
+				{
+					colors.push(1.0);
+				}
+			}
+		}
+		gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(colors),gl.STATIC_DRAW);
+		bufferObject.vertexColorBuffer.itemSize = 4;
+		bufferObject.vertexColorBuffer.numItems = colors.length;
+		bufferObject.shaderType = K_ShaderColor;
+	}
+
+    bufferObject.vertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,bufferObject.vertexIndexBuffer);
+    vertexIndices =
+    [
+    	0, 1, 2,      0, 2, 3,    // Front face
+        4, 5, 6,      4, 6, 7,    // Back face
+        8, 9, 10,     8, 10, 11,  // Top face
+        12, 13, 14,   12, 14, 15, // Bottom face
+        16, 17, 18,   16, 18, 19, // Right face
+        20, 21, 22,   20, 22, 23  // Left face
+   	];
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(vertexIndices),gl.STATIC_DRAW);
+    bufferObject.vertexIndexBuffer.itemSize = 1;
+    bufferObject.vertexIndexBuffer.numItems = 36;
+
+    bufferObject.name = "SkyBox";
+    bufferObject.instances = [];
+   	bufferObject.instanceCount = 0;
+
+   	console.log(bufferObject);
+
+   	if(self.textureArray != null)
+ 	{
+ 		while(self.textureArray.length != 0)
+ 			gl.textureManager.preloadTexture(gl, self.textureArray.pop(), callback, bufferObject, self);
+ 	}
+    else
+    {
+    	callback(bufferObject);
+    }
+}; -->
+
+
+<!-- gl.enableVertexAttribArray(shader.attribute.aVertexPosition);
+gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexPositionBuffer);
+gl.vertexAttribPointer(shader.attribute.aVertexPosition, object.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+var texture = null, objTexture = null;
+if(object.hasTexture)
+{
+	if(!object.vertexTextureBuffer) {return;}
+	gl.enableVertexAttribArray(shader.attribute.aTextureCoord);
+	gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexTextureBuffer);
+	gl.vertexAttribPointer(shader.attribute.aTextureCoord, object.vertexTextureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	objTexture = object.texture;
+}
+else
+{
+	if(!object.vertexColorBuffer) {return;}
+	gl.enableVertexAttribArray(shader.attribute.aColor);
+	gl.bindBuffer(gl.ARRAY_BUFFER, object.vertexColorBuffer);
+	gl.vertexAttribPointer(shader.attribute.aColor, object.vertexColorBuffer.itemSize, gl.FLOAT,false, 0, 0);
+
+}
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.vertexIndexBuffer);
+  gl.uniformMatrix4fv(shader.uniform.uProjectionMatrix, false, camera.pMatrix);
+  gl.uniformMatrix4fv(shader.uniform.uViewMatrix, false, camera.getViewMatrix()); -->

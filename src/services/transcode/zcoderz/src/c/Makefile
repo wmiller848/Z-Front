@@ -2,9 +2,9 @@ AR=ar
 CC=gcc
 EMAR=emar
 EMCC=emcc
-CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8
+CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8 -I$(LIBVPX)vp9
 COPT=O1
-EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_seek","_stream_write","_stream_write_chunk","_stream_parse","_stream_get_frame_info"]'
+EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_seek","_stream_write","_stream_write_chunk","_stream_parse","_stream_parse2","_stream_get_frame_info"]'
 
 LIBVPX=/opt/vendor/libvpx/
 

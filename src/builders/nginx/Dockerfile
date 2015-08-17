@@ -1,15 +1,15 @@
 #
-FROM fedora:latest
+FROM fedora:22
 
 # Set up deps
-RUN yum install -y glibc-devel glibc-headers glibc-static
-RUN yum install -y gcc gcc-c++ cpp pcre-devel
-RUN yum install -y openssl-devel zlib-devel
-RUN yum install -y git mercurial
-RUN yum install -y tar wget
-RUN yum install -y cmake make autoconf pkgconfig
-RUN yum install -y libtool nasm
-RUN yum install -y freetype*
+RUN dnf install -y glibc-devel glibc-headers glibc-static
+RUN dnf install -y gcc gcc-c++ cpp pcre-devel
+RUN dnf install -y openssl-devel zlib-devel
+RUN dnf install -y git mercurial
+RUN dnf install -y tar wget
+RUN dnf install -y cmake make autoconf pkgconfig
+RUN dnf install -y libtool nasm which
+RUN dnf install -y freetype*
 
 # Install ffmpeg
 WORKDIR /opt/vendor

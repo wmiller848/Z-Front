@@ -1,10 +1,10 @@
 ###
 ###
-FROM fedora:latest
+FROM fedora:22
 
-RUN yum -y update
-RUN yum -y install make cmake automake gcc gcc-c++ kernel-devel yasm
-RUN yum -y install git tar wget
+RUN dnf -y update
+RUN dnf -y install make cmake automake gcc gcc-c++ kernel-devel yasm
+RUN dnf -y install git tar wget
 
 ########
 ## Java
@@ -43,8 +43,8 @@ RUN ./emsdk install latest
 RUN ./emsdk activate latest
 
 ENV PATH=$PATH:/opt/vendor/emsdk_portable
-ENV PATH=$PATH:/opt/vendor/emsdk_portable/clang/fastcomp/build_master_64/bin
-ENV PATH=$PATH:/opt/vendor/emsdk_portable/emscripten/master
-ENV EMSCRIPTEN=/opt/vendor/emsdk_portable/emscripten/master
+ENV PATH=$PATH:/opt/vendor/emsdk_portable/clang/tag-e1.34.3/build_tag-e1.34.3_64/bin/
+ENV PATH=$PATH:/opt/vendor/emsdk_portable/emscripten/tag-1.34.3
+ENV EMSCRIPTEN=/opt/vendor/emsdk_portable/emscripten/tag-1.34.3
 
 CMD /bin/bash -l

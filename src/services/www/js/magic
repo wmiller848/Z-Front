@@ -19,10 +19,10 @@ start() {
   docker run --name=www_maleficjs-data -v /opt/maleficjs --entrypoint /bin/echo wmiller848/maleficjs "Maleficjs data volume"
   docker run --name=www_zcoderz-data -v /opt/zcoderz --entrypoint /bin/echo zfront/zcoderz "Zcoderz data volume"
 
-  SRV1=`docker inspect www_maleficjs-data | grep "vfs/dir" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
-  SRV2=`docker inspect www_zcoderz-data | grep "vfs/dir" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
+  SRV1=`docker inspect www_maleficjs-data | grep "/opt/maleficjs\"\: \"" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
+  SRV2=`docker inspect www_zcoderz-data | grep "/opt/zcoderz\"\: \"" | awk '/"(.*)"/ { gsub(/"/,"",$2); print $2 }'`
 
-  docker run -d -h zfront -P -v $SRV1/bin/release/malefic.min.js:/opt/www/js/malefic.min.js\
+  docker run -d -h zfront -P -p 80:80 -v $SRV1/bin/release/malefic.min.js:/opt/www/js/malefic.min.js\
                           -v $SRV2/c/build/libzcoderz.js:/opt/www/js/libzcoderz.js\
                           -v $SRV2/js/bin/dev/zcoderz.js:/opt/www/js/zcoderz.js\
                           --name=www_js zfront/www_js

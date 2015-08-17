@@ -1,2 +1,4 @@
-docker build -t market/nginx ./builders/nginx
-docker build -t market/golang ./builders/golang
+#!/bin/bash
+docker build -t zfront/emscripten ./builders/emscripten
+docker build -t zfront/nginx ./builders/nginx
+#docker build -t zfront/golang ./builders/golang
