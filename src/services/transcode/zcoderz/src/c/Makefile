@@ -2,11 +2,12 @@ AR=ar
 CC=gcc
 EMAR=emar
 EMCC=emcc
-CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8 -I$(LIBVPX)vp9
+CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8 -I$(LIBVPX)vp9 -I$(LIBVPX)vp10 -I$(LIBYUV)include
 COPT=O1
 EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_seek","_stream_write","_stream_write_chunk","_stream_parse","_stream_parse2","_stream_get_frame_info"]'
 
 LIBVPX=/opt/vendor/libvpx/
+LIBYUV=/opt/vendor/libyuv/
 
 all: clean javascript
 
@@ -54,9 +55,9 @@ libzcoderz.bc: zcoderz.c /opt/vendor/libvpx/libvpx.a
 	$(EMCC) -$(COPT) -c $(CFLAGS) $(LIBVPX)tools_common.c -o ./build/tools_common.bc
 	$(EMCC) -$(COPT) -c $(CFLAGS) $(LIBVPX)video_stream_reader.c -o ./build/video_stream_reader.bc
 	$(EMCC) -$(COPT) -c $(CFLAGS) zcoderz.c -o ./build/zcoderz.bc
-	$(EMCC) -$(COPT) -static -L$(LIBVPX) ./build/zcoderz.bc ./build/ivfdec.bc\
+	$(EMCC) -$(COPT) -static -L$(LIBVPX) -L$(LIBYUV) ./build/zcoderz.bc ./build/ivfdec.bc\
 					./build/tools_common.bc ./build/video_stream_reader.bc\
-					-o ./build/libzcoderz.bc -lvpx
+					-o ./build/libzcoderz.bc -lvpx -lyuv
 	$(EMCC) -$(COPT) -static -L$(LIBVPX) -s EXPORTED_FUNCTIONS=$(EXP_FUNCS)\
 					./build/libzcoderz.bc -o ./build/libzcoderz.js
 

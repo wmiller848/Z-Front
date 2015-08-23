@@ -21,8 +21,8 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     frame = @get_frame()
     if not frame.err
       @Trigger('frame', frame)
-      # status = _stream_seek(@stream, frame.net_bytes_read)
-      # console.error("Failed to seek stream") if not status
+      status = _stream_seek(@stream, frame.net_bytes_read)
+      console.error("Failed to seek stream") if not status
     else
       console.log(frame)
 
@@ -61,7 +61,7 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     Module._free(clone)
 
   get_frame: ->
-    status = _stream_parse(@stream)
+    status = _stream_parse(@stream, 0)
     return { success: false, err: "Error parsing stream" } if status isnt 0
     status = _stream_get_frame_info(@stream, @gl_rgb_frame_buf_ptr, @gl_rgb_frame_buf_length_ptr,
                                     @gl_luma_frame_buf_ptr, @gl_luma_frame_buf_length_ptr,
@@ -71,7 +71,7 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     return { success: false, err: "Error getting stream info" } if status isnt 0
 
     gl_rgb_frame_buf_length = Module.getValue(@gl_rgb_frame_buf_length_ptr, 'i32')
-    gl_rgb_frame_buf = Module.HEAPU8.subarray(@gl_rgb_frame_buf_ptr, @gl_rgb_frame_buf_ptr + gl_rgb_frame_buf_length)
+    gl_rgb_frame_buf = Module.HEAPU8.subarray(@gl_rgb_frame_buf_ptr + (43801*3), @gl_rgb_frame_buf_ptr + (43801*3) + gl_rgb_frame_buf_length)
 
     gl_luma_frame_buf_length = Module.getValue(@gl_luma_frame_buf_length_ptr, 'i32')
     gl_luma_frame_buf = Module.HEAPU8.subarray(@gl_luma_frame_buf_ptr, @gl_luma_frame_buf_ptr + gl_luma_frame_buf_length)

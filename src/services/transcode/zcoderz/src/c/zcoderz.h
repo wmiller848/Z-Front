@@ -56,7 +56,7 @@ uint8_t stream_flush(Stream *stream);
 uint8_t stream_seek(Stream *stream, size_t index);
 uint8_t stream_write(Stream *stream, const uint8_t *data, const size_t data_size);
 uint8_t stream_write_chunk(Stream *stream, const uint8_t *data, const size_t data_size);
-uint8_t stream_parse(Stream *stream);
+uint8_t stream_parse(Stream *stream, size_t offset);
 uint8_t stream_get_frame_info(Stream *stream,
                               const uint8_t *gl_rgb_buf, size_t *gl_rgb_buf_size,
                               const uint8_t *gl_luma_buf, size_t *gl_luma_buf_size,

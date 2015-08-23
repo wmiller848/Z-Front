@@ -34,31 +34,32 @@ RUN sed -i "s/\-rus/rus/" build/make/configure.sh
 RUN emconfigure ./configure\
 #				--prefix=/usr
 #				--disable-examples --disable-docs\
+				--disable-vp8-encoder --disable-vp9-encoder --disable-vp10-encoder\
 				--disable-runtime-cpu-detect\
 				--disable-multithread --disable-optimizations\
+				--enable-error-concealment --enable-postproc\
+				--enable-coefficient-range-checking\
+				--enable-realtime-only --enable-onthefly-bitpacking\
 				--target=generic-gnu
-RUN emmake make
+RUN emmake make -j7
 
 # Replace these functions names to a name spaced version
-RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/ivfdec.c
-RUN sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/ivfdec.c
-RUN sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/ivfdec.c
-RUN sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/ivfdec.c
-
-RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/tools_common.h
-RUN sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/tools_common.h
-RUN sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/tools_common.h
-RUN sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/tools_common.h
-
-RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/tools_common.c
-RUN sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/tools_common.c
-RUN sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/tools_common.c
-RUN sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/tools_common.c
-
-RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/video_reader.c
-RUN sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/video_reader.c
-RUN sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/video_reader.c
-RUN sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/video_reader.c
+RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/ivfdec.c;\
+		sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/ivfdec.c;\
+		sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/ivfdec.c;\
+		sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/ivfdec.c;\
+		sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/tools_common.h;\
+		sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/tools_common.h;\
+		sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/tools_common.h;\
+		sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/tools_common.h;\
+		sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/tools_common.c;\
+		sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/tools_common.c;\
+		sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/tools_common.c;\
+		sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/tools_common.c;\
+		sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/video_reader.c;\
+		sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/video_reader.c;\
+		sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/video_reader.c;\
+		sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/video_reader.c
 
 #RUN ./configure\
 #				--prefix=/usr\
@@ -67,6 +68,16 @@ RUN sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/video_reader.c
 #				--disable-multithread --disable-optimizations
 #				--target=generic-gnu
 #RUN make
+
+#########
+## Libyuv
+#########
+
+WORKDIR /opt/vendor
+RUN git clone https://github.com/wmiller848/libyuv
+WORKDIR /opt/vendor/libyuv
+RUN emmake make -j7 V=1 -f linux.mk
+
 
 ADD ./src /opt/zcoderz
 RUN ls -R /opt/vendor/libvpx

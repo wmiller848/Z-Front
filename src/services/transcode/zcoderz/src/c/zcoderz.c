@@ -10,6 +10,7 @@
 #include <tools_common.h>
 #include <video_stream_reader.h>
 #include <vpx_config.h>
+#include <libyuv/convert_from.h>
 
 #include "zcoderz.h"
 
@@ -70,7 +71,7 @@ Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_si
   stream->gl_rgb_buf_fill = 0;
   stream->gl_rgb_buf_size = stream->info->frame_width * stream->info->frame_height * 3;
   // proc_info("GL Buf Size %u", (unsigned int)stream->gl_buf_size);
-  stream->gl_rgb_buf = (uint8_t*)calloc(stream->gl_rgb_buf_size, sizeof(uint8_t));
+  stream->gl_rgb_buf = (uint8_t*)malloc(stream->gl_rgb_buf_size * sizeof(uint8_t));
 
   stream->gl_luma_buf_fill = 0;
   stream->gl_luma_buf_size = stream->info->frame_width * stream->info->frame_height;
@@ -96,14 +97,14 @@ Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_si
   if (vpx_codec_dec_init(&stream->codec, stream->decoder->codec_interface(), NULL, 0))
     die_codec(&stream->codec, "Failed to initialize decoder.");
 
-  // stream->postproc = (vp8_postproc_cfg_t){
-  //   VP8_DEBLOCK | VP8_DEMACROBLOCK,
-  //   4, // strength of deblocking, valid range [0, 16]
-  //   0
-  // };
-  //
-  // if(vpx_codec_control(&stream->codec, VP8_SET_POSTPROC, &stream->postproc))
-  //   die_codec(&stream->codec, "Failed to turn on postproc");
+  stream->postproc = (vp8_postproc_cfg_t){
+    VP8_DEBLOCK | VP8_DEMACROBLOCK,
+    4, // strength of deblocking, valid range [0, 16]
+    0
+  };
+
+  if(vpx_codec_control(&stream->codec, VP8_SET_POSTPROC, &stream->postproc))
+    die_codec(&stream->codec, "Failed to turn on postproc");
 
   return stream;
 }
@@ -282,7 +283,8 @@ inline int clamp8(int v) {
     return min(max(v, 0), 255);
 }
 
-uint8_t stream_parse(Stream *stream) {
+uint8_t stream_parse(Stream *stream, size_t offset) {
+  stream->net_buf += offset;
   if (vpx_video_stream_reader_read_frame(stream->net_buf, stream->net_buf_fill, stream->reader)) {
     // const unsigned char *frame = vpx_video_reader_get_frame(reader, frame_size);
     stream->vpx_frame = vpx_video_stream_reader_get_frame(stream->reader, &stream->vpx_frame_size);
@@ -296,46 +298,69 @@ uint8_t stream_parse(Stream *stream) {
         vpx_image_t *img = stream->vpx_img;
         proc_info("Got frame Image");
         proc_info("Y Stride - %u, U Stride - %u, V Stride %u", img->stride[0], img->stride[1], img->stride[2]);
-        proc_info("Image Format %u", img->fmt);
-        stream->gl_luma_buf = img->planes[0]; // y
-        stream->gl_chromaB_buf = img->planes[2]; // u
-        stream->gl_chromaR_buf = img->planes[1]; // v
-
-        int i = 0;
-        unsigned int imgY, imgX;
-        for (imgY = 0; imgY < img->d_h; imgY++) {
-          for (imgX = 0; imgX < img->d_w; imgX++) {
-            int y = stream->gl_luma_buf[imgY * img->stride[0] + imgX];
-            int u = stream->gl_chromaB_buf[(imgY / 2) * img->stride[2] + (imgX / 2)];
-            int v = stream->gl_chromaR_buf[(imgY / 2) * img->stride[1] + (imgX / 2)];
-
-            // stream->gl_rgb_buf[i + 0] = (uint8_t)y;
-            // stream->gl_rgb_buf[i + 1] = (uint8_t)u;
-            // stream->gl_rgb_buf[i + 2] = (uint8_t)v;
-
-            int c = y - 16;
-            int d = (u - 128);
-            int e = (v - 128);
-            //
-            // // TODO: adjust colors ?
-            //
-            int r = clamp8((298 * c           + 409 * e + 128) >> 8);
-            int g = clamp8((298 * c - 100 * d - 208 * e + 128) >> 8);
-            int b = clamp8((298 * c + 516 * d           + 128) >> 8);
-            //
-            // // TODO: cast instead of clamp8
-            //
-            // data[i + 0] = static_cast<uint8_t>(r);
-            // data[i + 1] = static_cast<uint8_t>(g);
-            // data[i + 2] = static_cast<uint8_t>(b);
-
-            stream->gl_rgb_buf[i + 0] = (uint8_t)r;
-            stream->gl_rgb_buf[i + 1] = (uint8_t)g;
-            stream->gl_rgb_buf[i + 2] = (uint8_t)b;
-
-            i += 3;
-          }
+        proc_info("Image Format %u", (size_t)img->fmt);
+        switch ((size_t)img->fmt) {
+          case (size_t)VPX_IMG_FMT_PLANAR:
+            proc_info("VPX_IMG_FMT_PLANAR");
+            break;
+          case (size_t)VPX_IMG_FMT_I420:
+            proc_info("VPX_IMG_FMT_I420");
+            break;
+          case (size_t)VPX_IMG_FMT_I422:
+            proc_info("VPX_IMG_FMT_I422");
+            break;
+          case (size_t)VPX_IMG_FMT_I444:
+            proc_info("VPX_IMG_FMT_I444");
+            break;
+          default:
+            proc_info("Unknown VPX IMG_FMT");
+            break;
         }
+        stream->gl_luma_buf = img->planes[0]; // y
+        stream->gl_chromaB_buf = img->planes[1]; // u
+        stream->gl_chromaR_buf = img->planes[2]; // v
+
+        return (uint8_t)I420ToRGB24(img->planes[0], img->stride[0],
+                        img->planes[1], img->stride[1],
+                        img->planes[2], img->stride[2],
+                        stream->gl_rgb_buf, img->d_w * 3,
+                        img->d_w, img->d_h);
+
+        // int i = 0;
+        // unsigned int imgY, imgX;
+        // for (imgY = 0; imgY < img->d_h; imgY++) {
+        //   for (imgX = 0; imgX < img->d_w; imgX++) {
+        //     int y = stream->gl_luma_buf[imgY * img->stride[0] + imgX];
+        //     int u = stream->gl_chromaB_buf[(imgY / 2) * img->stride[1] + (imgX / 2)];
+        //     int v = stream->gl_chromaR_buf[(imgY / 2) * img->stride[2] + (imgX / 2)];
+        //
+        //     // stream->gl_rgb_buf[i + 0] = (uint8_t)y;
+        //     // stream->gl_rgb_buf[i + 1] = (uint8_t)u;
+        //     // stream->gl_rgb_buf[i + 2] = (uint8_t)v;
+        //
+        //     int c = y - 16;
+        //     int d = (u - 128);
+        //     int e = (v - 128);
+        //     //
+        //     // // TODO: adjust colors ?
+        //     //
+        //     int r = clamp8((298 * c           + 409 * e + 128) >> 8);
+        //     int g = clamp8((298 * c - 100 * d - 208 * e + 128) >> 8);
+        //     int b = clamp8((298 * c + 516 * d           + 128) >> 8);
+        //     //
+        //     // // TODO: cast instead of clamp8
+        //     //
+        //     // data[i + 0] = static_cast<uint8_t>(r);
+        //     // data[i + 1] = static_cast<uint8_t>(g);
+        //     // data[i + 2] = static_cast<uint8_t>(b);
+        //
+        //     stream->gl_rgb_buf[i + 0] = (uint8_t)r;
+        //     stream->gl_rgb_buf[i + 1] = (uint8_t)g;
+        //     stream->gl_rgb_buf[i + 2] = (uint8_t)b;
+        //
+        //     i += 3;
+        //   }
+        // }
 
         // uint8_t *rgb, *py, *pu, *pv;
         // unsigned int i, j;

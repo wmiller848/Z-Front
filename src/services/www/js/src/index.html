@@ -109,6 +109,19 @@
         //   i++;
         // }
 
+        // WTF!!! Is going on with decoding the buffers
+        // var size = 43801;
+        // var sub = frame.gl_rgb_frame_buf.subarray(size * 3, frame.gl_rgb_frame_buf.length);
+        // var clone = new Uint8Array(frame.gl_rgb_frame_buf.length);
+        // var l = frame.gl_rgb_frame_buf.length
+        // for (var i = 0; i < l; i++) {
+        //     if (i > sub.length)
+        //       clone[i] = 0; // We lost data
+        //     else
+        //       clone[i] = sub[i];
+        // }
+        // frame.gl_rgb_frame_buf = clone;
+
         var rgb_texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, rgb_texture);
         gl.texImage2D(
