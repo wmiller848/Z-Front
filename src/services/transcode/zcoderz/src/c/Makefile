@@ -3,8 +3,8 @@ CC=gcc
 EMAR=emar
 EMCC=emcc
 CFLAGS=-I./ -I$(LIBVPX) -I$(LIBVPX)vpx -I$(LIBVPX)vp8 -I$(LIBVPX)vp9 -I$(LIBVPX)vp10 -I$(LIBYUV)include
-COPT=O1
-EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_seek","_stream_write","_stream_write_chunk","_stream_parse","_stream_parse2","_stream_get_frame_info"]'
+COPT=O3
+EXP_FUNCS='["_create_stream","_destroy_stream","_stream_flush","_stream_seek","_stream_write","_stream_write_chunk","_stream_parse"]'
 
 LIBVPX=/opt/vendor/libvpx/
 LIBYUV=/opt/vendor/libyuv/
