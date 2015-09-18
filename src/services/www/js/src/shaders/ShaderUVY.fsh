@@ -5,7 +5,6 @@ uniform sampler2D uSamplerV;
 varying highp vec2 vUV;
 
 void main() {
-
     highp float y = texture2D(uSamplerY, vUV).r;
     highp float u = texture2D(uSamplerU, vUV).r;
     highp float v = texture2D(uSamplerV, vUV).r;

@@ -7,8 +7,7 @@ uniform mat4 uProjectionMatrix;
 varying lowp vec4 vColor;
 varying lowp vec2 vUV;
 
-void main()
-{
+void main() {
     vec4 position = uViewMatrix * vec4(aVertexPosition,1.0);
 
     vColor = vec4(1.0, 1.0, 1.0, 1.0);

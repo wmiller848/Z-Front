@@ -24,10 +24,6 @@ typedef struct {
   size_t net_buf_size;
   uint8_t *net_buf;
 
-  // size_t gl_rgb_buf_fill;
-  // size_t gl_rgb_buf_size;
-  // uint8_t *gl_rgb_buf;
-  //
   // size_t gl_luma_buf_fill;
   // size_t gl_luma_buf_size;
   // uint8_t *gl_luma_buf;
@@ -50,6 +46,7 @@ typedef struct {
 void version();
 Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_size);
 uint8_t destroy_stream(Stream *stream);
+float stream_get_buff_fill(Stream *stream);
 uint8_t stream_flush(Stream *stream);
 uint8_t stream_seek(Stream *stream, size_t index);
 uint8_t stream_write(Stream *stream, const uint8_t *data, const size_t data_size);

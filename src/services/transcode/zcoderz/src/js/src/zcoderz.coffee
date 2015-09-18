@@ -7,7 +7,13 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     @started = false
     @zstream = zstream
     @zstream.On('data', (buf) =>
-      @data(buf)
+      fill = _stream_get_buff_fill(@stream)
+      if fill <= 0.8
+        @zstream.Play()
+      else
+        @zstream.Pause()
+
+      @data(buf) if buf
     )
 
   data: (buf) ->
@@ -30,21 +36,22 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
 
     # http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
     net_packet_size = 1400
-    net_buf_size = 32768 * 4 # 4 data ticks
+    net_buf_size = 32768 * 32 # 10 data ticks
     @stream = _create_stream(@header_buf_ptr, net_packet_size, net_buf_size)
+    @tmp = Module._malloc(32768)
 
   # TODO :: so much mem copy...
   write: (buf) ->
-    clone = Module._malloc(buf.length)
-    Module.HEAPU8.set(buf, clone)
-    status = _stream_write_chunk(@stream, clone, buf.length)
+    Module.HEAPU8.set(buf, @tmp)
+    status = _stream_write_chunk(@stream, @tmp, buf.length)
     if status isnt 0
       console.error("Error writing to stream")
-    Module._free(clone)
+    # Module._free(clone)
 
   get_frame: ->
-    timer = new Date()
-    console.log("Start - #{timer.getUTCMilliseconds()}")
+    # timer = new Date()
+    # console.log("Start - #{timer.getUTCMilliseconds()}")
+
     status = _stream_parse(@stream, @gl_buffer, @net_bytes_read_ptr)
     return { success: false, err: "Error parsing stream - #{status}" } if status isnt 0
 
@@ -53,8 +60,9 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     net_bytes_read = Module.getValue(@net_bytes_read_ptr, 'i32')
     # console.log("Get Frame Status", status, net_bytes_read)
 
-    timer = new Date()
-    console.log("End - #{timer.getUTCMilliseconds()}")
+    # timer = new Date()
+    # console.log("End - #{timer.getUTCMilliseconds()}")
+
     gl_rgb_frame_buf: gl_buffer,
     net_bytes_read: net_bytes_read
 

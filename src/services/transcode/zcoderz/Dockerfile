@@ -36,7 +36,8 @@ RUN emconfigure ./configure\
 #				--disable-examples --disable-docs\
 				--disable-vp8-encoder --disable-vp9-encoder --disable-vp10-encoder\
 				--disable-runtime-cpu-detect\
-				--disable-multithread --disable-optimizations\
+#				--disable-optimizations\
+				--disable-multithread\
 				--enable-error-concealment --enable-postproc\
 				--enable-coefficient-range-checking\
 				--enable-realtime-only --enable-onthefly-bitpacking\
@@ -78,9 +79,19 @@ RUN git clone https://github.com/wmiller848/libyuv
 WORKDIR /opt/vendor/libyuv
 RUN emmake make -j7 V=1 -f linux.mk
 
+#########
+## Libopus
+#########
+
+WORKDIR /opt/vendor
+RUN git clone git://git.opus-codec.org/opus.git libopus
+WORKDIR /opt/vendor/libopus
+RUN dnf install -y libtool
+RUN ./autogen.sh
+RUN emconfigure ./configure --enable-static=true --enable-shared=false --enable-float-approx
+RUN emmake make
 
 ADD ./src /opt/zcoderz
-RUN ls -R /opt/vendor/libvpx
 
 WORKDIR /opt/zcoderz/c
 

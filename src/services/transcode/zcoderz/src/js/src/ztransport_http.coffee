@@ -18,7 +18,7 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     return @Error?(err) if err
     @headers = res.headers()
     @size = new Number(@headers['content-length'])
-    @chunk_size = 32768 * 4
+    @chunk_size = 32768
     @streamed = 0
     @buf = res.toArray()
 
@@ -29,24 +29,31 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     @Info?(null, @headers)
 
     @zstream = new ZFRONT.ZStream()
-    @buffer_time = 1000 # ms
+    @zstream.Pause = ->
+      @paused = true
+    @zstream.Play = ->
+      @paused = false
+    @zstream.paused = false
+
+    @buffer_time = 100 # ms
     @Open?(@zstream)
 
     setTimeout( =>
       @Tick()
-    , 100)
+    , @buffer_time)
 
   Tick: ->
-    chunk_size = @chunk_size
-    chunk_size = @buf.length - @streamed if @streamed + chunk_size > @buf.length
-    # console.log("Read #{chunk_size} bytes")
-    network_bytes = new Uint8Array(@buf.subarray(@streamed, (@streamed + chunk_size)))
-    @streamed += network_bytes.length
-
-    console.log("Streamed #{@streamed} / #{@buf.length}")
-
-    @zstream.Trigger('data', network_bytes)
-    return @Close?() if @streamed >= @size
+    if @zstream.paused is false
+      chunk_size = @chunk_size
+      chunk_size = @buf.length - @streamed if @streamed + chunk_size > @buf.length
+      # console.log("Read #{chunk_size} bytes")
+      network_bytes = new Uint8Array(@buf.subarray(@streamed, (@streamed + chunk_size)))
+      @streamed += network_bytes.length
+      # console.log("Streamed #{@streamed} / #{@buf.length}")
+      @zstream.Trigger('data', network_bytes)
+      return @Close?() if @streamed >= @size
+    else if @zstream.paused is true
+      @zstream.Trigger('data', null)
 
     setTimeout( =>
       @Tick()
