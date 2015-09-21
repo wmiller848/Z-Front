@@ -45,6 +45,8 @@ typedef struct {
 
 void version();
 Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_size);
+size_t stream_width(Stream *stream);
+size_t stream_height(Stream *stream);
 uint8_t destroy_stream(Stream *stream);
 float stream_get_buff_fill(Stream *stream);
 uint8_t stream_flush(Stream *stream);

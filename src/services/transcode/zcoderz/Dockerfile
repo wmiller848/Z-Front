@@ -2,7 +2,7 @@
 ###
 FROM zfront/emscripten:latest
 
-RUN dnf -y install glibc-static bzip2 fontconfig which
+RUN dnf -y install libtool glibc-static bzip2 fontconfig which
 
 RUN npm install -g gulp phantomjs
 
@@ -84,10 +84,12 @@ RUN emmake make -j7 V=1 -f linux.mk
 #########
 
 WORKDIR /opt/vendor
-RUN git clone git://git.opus-codec.org/opus.git libopus
+#RUN git clone git://git.opus-codec.org/opus.git libopus
+RUN wget http://downloads.xiph.org/releases/opus/opus-1.1.tar.gz
+RUN tar -xf opus-1.1.tar.gz
+RUN mv opus-1.1 libopus
 WORKDIR /opt/vendor/libopus
-RUN dnf install -y libtool
-RUN ./autogen.sh
+#RUN ./autogen.sh
 RUN emconfigure ./configure --enable-static=true --enable-shared=false --enable-float-approx
 RUN emmake make
 

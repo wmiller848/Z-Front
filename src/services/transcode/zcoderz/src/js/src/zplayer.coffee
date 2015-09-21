@@ -134,25 +134,27 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
 
       @gl.uniform1i(shader.uniform.uSampler, 0)
 
-    fps = document.getElementById('fps_counter')
-    frame_time = document.getElementById('frame_time')
+    fps = @Q('#fps_counter')
+    zcoders_buf_fill = @Q('#zcoders_buf_fill')
     handler = (time) =>
       fps.innerText = time.realFramesPerSecond
       if @zcoderz and time.framesPerSecond > 15
+        zcoders_buf_fill.innerText = @zcoderz.fill
         frame = @zcoderz.get_frame()
         if not frame.err
           @render(frame)
           status = _stream_seek(@zcoderz.stream, frame.net_bytes_read)
           console.error("Failed to seek stream") if status isnt 0
 
-    @RenderLoop(handler , 25)
+    virtual_fps = 24
+    @RenderLoop(handler , virtual_fps)
 
     transport_promise = new ZFRONT.ZTransportHTTP(url)
     transport_promise.Info = (status, info) ->
       console.log(status, info)
     transport_promise.Open = (zstream) =>
       console.log(url + " opened")
-      @zcoderz = new ZFRONT.ZCoderz(zstream)
+      @zcoderz = new ZFRONT.ZCoderz(zstream, transport_promise.chunk_size)
 
       console.log("Waiting for frame...")
       @zcoderz.On('frame', (frame) ->
@@ -161,7 +163,7 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
       )
     transport_promise.Close = =>
       console.log(url + " closed")
-      @zcoderz.Destroy()
+      # @zcoderz.Destroy()
 
     transport_promise.Error = (err) ->
       console.error(err)
@@ -171,16 +173,22 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
       @gl.TEXTURE_2D, # target
       0, # mip level
       @gl.RGB, # internal format
-      @gl.viewportWidth, # width
-      @gl.viewportHeight, # height
+      @zcoderz.width,
+      @zcoderz.height,
       0, # border
       @gl.RGB, #format
       @gl.UNSIGNED_BYTE, # type
       frame.gl_rgb_frame_buf # texture data
     )
-    @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_MAG_FILTER, @gl.LINEAR)
-    @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_MIN_FILTER, @gl.LINEAR_MIPMAP_NEAREST)
-    @gl.generateMipmap(@gl.TEXTURE_2D)
+
+    # Non po2
+    @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_MIN_FILTER, @gl.LINEAR)
+    @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_WRAP_S, @gl.CLAMP_TO_EDGE)
+    @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_WRAP_T, @gl.CLAMP_TO_EDGE)
+
+    # @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_MAG_FILTER, @gl.LINEAR)
+    # @gl.texParameteri(@gl.TEXTURE_2D, @gl.TEXTURE_MIN_FILTER, @gl.LINEAR_MIPMAP_NEAREST)
+    # @gl.generateMipmap(@gl.TEXTURE_2D)
 
     @gl.clear(@gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT)
     @gl.drawElements(@gl.TRIANGLES, @buffer_object.vertex_index_buffer.numItems, @gl.UNSIGNED_SHORT, 0)

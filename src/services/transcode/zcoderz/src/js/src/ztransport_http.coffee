@@ -18,7 +18,7 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
     return @Error?(err) if err
     @headers = res.headers()
     @size = new Number(@headers['content-length'])
-    @chunk_size = 32768
+    @chunk_size = 32768 * 2
     @streamed = 0
     @buf = res.toArray()
 
@@ -35,7 +35,7 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
       @paused = false
     @zstream.paused = false
 
-    @buffer_time = 100 # ms
+    @buffer_time = 300 # ms
     @Open?(@zstream)
 
     setTimeout( =>

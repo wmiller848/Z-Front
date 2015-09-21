@@ -68,16 +68,30 @@ Stream* create_stream(uint8_t *header, size_t net_packet_size, size_t net_buf_si
   if (vpx_codec_dec_init(&stream->codec, stream->decoder->codec_interface(), NULL, 0))
     die_codec(&stream->codec, "Failed to initialize decoder.");
 
-  stream->postproc = (vp8_postproc_cfg_t){
-    VP8_DEBLOCK | VP8_DEMACROBLOCK,
-    4, // strength of deblocking, valid range [0, 16]
-    0
-  };
-
-  if(vpx_codec_control(&stream->codec, VP8_SET_POSTPROC, &stream->postproc))
-    die_codec(&stream->codec, "Failed to turn on postproc");
+  // stream->postproc = (vp8_postproc_cfg_t){
+  //   VP8_DEBLOCK | VP8_DEMACROBLOCK,
+  //   4, // strength of deblocking, valid range [0, 16]
+  //   0
+  // };
+  //
+  // if(vpx_codec_control(&stream->codec, VP8_SET_POSTPROC, &stream->postproc))
+  //   die_codec(&stream->codec, "Failed to turn on postproc");
 
   return stream;
+}
+
+size_t stream_width(Stream *stream) {
+  if (stream->info)
+    return stream->info->frame_width;
+  else
+    return 0;
+}
+
+size_t stream_height(Stream *stream) {
+  if (stream->info)
+    return stream->info->frame_height;
+  else
+    return 0;
 }
 
 uint8_t destroy_stream(Stream *stream) {
@@ -107,12 +121,12 @@ uint8_t stream_flush(Stream *stream) {
 }
 
 uint8_t stream_seek(Stream *stream, size_t index) {
-  uint8_t *net_buf = malloc(sizeof(uint8_t) * stream->net_buf_size);
+  // uint8_t *net_buf = malloc(sizeof(uint8_t) * stream->net_buf_size);
   size_t u, i = index;
   if ((int)stream->net_buf_size - (int)index >= 0) {
-    memcpy(net_buf, stream->net_buf + index, stream->net_buf_size - index);
-    free(stream->net_buf);
-    stream->net_buf = net_buf;
+    memcpy(stream->net_buf, stream->net_buf + index, stream->net_buf_size - index);
+    // free(stream->net_buf);
+    // stream->net_buf = net_buf;
     stream->net_buf_fill = stream->net_buf_fill - index;
     return 0;
   }
@@ -176,3 +190,28 @@ uint8_t stream_parse(Stream *stream, uint8_t *gl_rgb_buf, size_t *net_bytes_read
   }
   return 1;
 }
+
+// uint8_t stream_parse(Stream *stream, uint8_t *gl_rgb_buf, size_t *net_bytes_read) {
+//   *net_bytes_read = 0;
+//   if (vpx_video_stream_reader_read_frame(stream->net_buf, stream->net_buf_fill, stream->reader)) {
+//     size_t frame_size = 0;
+//     const unsigned char *frame = vpx_video_stream_reader_get_frame(stream->reader, &frame_size);
+//     *net_bytes_read = frame_size + 12;
+//     if (vpx_codec_decode(&stream->codec, frame, (unsigned int)frame_size, NULL, 0))
+//       proc_warn("Failed to decode frame");
+//
+//     vpx_image_t *img = NULL;
+//     stream->iter = NULL;
+//     while ((img = vpx_codec_get_frame(&stream->codec, &stream->iter)) != NULL) {
+//       int status = ConvertFromI420(img->planes[0], img->stride[0],
+//         img->planes[2], img->stride[2],
+//         img->planes[1], img->stride[1],
+//         gl_rgb_buf, img->d_w * 3,
+//         img->d_w, img->d_h,
+//         FOURCC_24BG);
+//       // proc_info("I420ToRGB24 to status - %i", status);
+//       return 0;
+//     }
+//   }
+//   return 1;
+// }

@@ -32,7 +32,7 @@ function handleError (err) {
 }
 
 gulp.task('clean', function(cb) {
-  del(['bin'], cb);
+  return del(['bin'], cb);
 });
 
 gulp.task('compile', ['clean'], function() {

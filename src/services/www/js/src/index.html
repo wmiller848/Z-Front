@@ -12,10 +12,10 @@
 
   <body>
     <div style="margin:auto;text-align:center;">
-      <h1>Z-Front :: ZCoderz</h1>
-      <canvas width="1024px" height="512px" style="background-color:#000000;" id="render_context"></canvas>
+      <h1>Z-Front :: ZCoderz....</h1>
+      <canvas width="640px" height="360px" style="background-color:#000000;" id="render_context"></canvas>
       <p>FPS : <i id="fps_counter">0</i></p>
-      <p>Frame Time : <i id="frame_time">0</i></p>
+      <p>ZCoders Buffer Fill : <i id="zcoders_buf_fill">0</i></p>
     </div>
 
     <script>
@@ -264,36 +264,37 @@
       //   console.error(err);
       // };
 
-      var video_url = '/swfa.ivf';
+      var video_url = '/swfa_480p.ivf';
+      // var video_url = '/swfa_720p.ivf';
       // var url = '/300.ivf';
 
       var context = 'render_context';
-      var zplayer = new ZFRONT.ZPlayer(url, context);
+      var zplayer = new ZFRONT.ZPlayer(video_url, context);
 
-      var audio_url = "/swfa.ivf";
-      var transport_promise = new ZFRONT.ZTransportHTTP(url);
-      var zcoderz = null;
-
-      transport_promise.Info = function(status, info) {
-        console.log(status, info);
-      };
-      transport_promise.Open = function(zstream) {
-        console.log(url + " opened");
-        zcoderz = new ZFRONT.ZCoderz(zstream);
-
-        console.log("Waiting for frame...");
-        zcoderz.On('frame', function(frame) {
-          // console.log("frame", frame);
-          // current_frame = frame;
-        });
-      };
-      transport_promise.Close = function() {
-        console.log(url + " closed");
-        zcoderz.Destroy();
-      };
-      transport_promise.Error = function(err) {
-        console.error(err);
-      };
+      // var audio_url = "/swfa.ivf";
+      // var transport_promise = new ZFRONT.ZTransportHTTP(audio_url);
+      // var zcoderz = null;
+      //
+      // transport_promise.Info = function(status, info) {
+      //   console.log(status, info);
+      // };
+      // transport_promise.Open = function(zstream) {
+      //   console.log(url + " opened");
+      //   zcoderz = new ZFRONT.ZCoderz(zstream);
+      //
+      //   console.log("Waiting for frame...");
+      //   zcoderz.On('frame', function(frame) {
+      //     // console.log("frame", frame);
+      //     // current_frame = frame;
+      //   });
+      // };
+      // transport_promise.Close = function() {
+      //   console.log(url + " closed");
+      //   zcoderz.Destroy();
+      // };
+      // transport_promise.Error = function(err) {
+      //   console.error(err);
+      // };
     </script>
   </body>
 </html>
