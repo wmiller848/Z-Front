@@ -191,27 +191,27 @@ uint8_t stream_parse(Stream *stream, uint8_t *gl_rgb_buf, size_t *net_bytes_read
   return 1;
 }
 
-// uint8_t stream_parse(Stream *stream, uint8_t *gl_rgb_buf, size_t *net_bytes_read) {
-//   *net_bytes_read = 0;
-//   if (vpx_video_stream_reader_read_frame(stream->net_buf, stream->net_buf_fill, stream->reader)) {
-//     size_t frame_size = 0;
-//     const unsigned char *frame = vpx_video_stream_reader_get_frame(stream->reader, &frame_size);
-//     *net_bytes_read = frame_size + 12;
-//     if (vpx_codec_decode(&stream->codec, frame, (unsigned int)frame_size, NULL, 0))
-//       proc_warn("Failed to decode frame");
-//
-//     vpx_image_t *img = NULL;
-//     stream->iter = NULL;
-//     while ((img = vpx_codec_get_frame(&stream->codec, &stream->iter)) != NULL) {
-//       int status = ConvertFromI420(img->planes[0], img->stride[0],
-//         img->planes[2], img->stride[2],
-//         img->planes[1], img->stride[1],
-//         gl_rgb_buf, img->d_w * 3,
-//         img->d_w, img->d_h,
-//         FOURCC_24BG);
-//       // proc_info("I420ToRGB24 to status - %i", status);
-//       return 0;
-//     }
-//   }
-//   return 1;
-// }
+uint8_t stream_parse_yuv(Stream *stream, uint8_t *gl_luma_buf, uint8_t *gl_chromaB_buf, uint8_t *gl_chromaR_buf, size_t *net_bytes_read) {
+  *net_bytes_read = 0;
+
+  if (vpx_video_stream_reader_read_frame(stream->net_buf, stream->net_buf_fill, stream->reader)) {
+    size_t frame_size = 0;
+    const unsigned char *frame = vpx_video_stream_reader_get_frame(stream->reader, &frame_size);
+    *net_bytes_read = frame_size + 12;
+    if (vpx_codec_decode(&stream->codec, frame, (unsigned int)frame_size, NULL, 0))
+      proc_warn("Failed to decode frame");
+
+    vpx_image_t *img = NULL;
+    stream->iter = NULL;
+    while ((img = vpx_codec_get_frame(&stream->codec, &stream->iter)) != NULL) {
+      size_t y;
+      for (y = 0; y < img->d_h; y++) {
+          memcpy(gl_luma_buf + y * img->d_w, img->planes[0] + y * img->stride[0], img->d_w);
+          memcpy(gl_chromaB_buf + y/2 * img->d_w/2, img->planes[1] + y/2 * img->stride[1], img->d_w/2);
+          memcpy(gl_chromaR_buf + y/2 * img->d_w/2, img->planes[2] + y/2 * img->stride[2], img->d_w/2);
+      }
+      return 0;
+    }
+  }
+  return 1;
+}

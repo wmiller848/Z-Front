@@ -37,12 +37,19 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
     net_packet_size = 1400 # this value drives nothing...
     net_buf_size = packet_size * 10 # 10 data ticks
     @stream = _create_stream(@header_buf_ptr, net_packet_size, net_buf_size)
+
     @width = _stream_width(@stream)
     @height =_stream_height(@stream)
+
     @gl_buffer = Module._malloc(@width * @height * 3)
+    @gl_luma_buffer = Module._malloc(@width * @height)
+    @gl_chromaB_buffer = Module._malloc(@width/2 * @height/2)
+    @gl_chromaR_buffer = Module._malloc(@width/2 * @height/2)
+
+    @gl_yuv_stride_ptr = Module._malloc(@ptr_byte_size)
+
     @tmp = Module._malloc(packet_size)
 
-  # TODO :: so much mem copy...
   write: (buf) ->
     Module.HEAPU8.set(buf, @tmp)
     status = _stream_write_chunk(@stream, @tmp, buf.length)
@@ -52,17 +59,25 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
   get_frame: ->
     # timer = new Date()
     # console.log("Start - #{timer.getUTCMilliseconds()}")
-    status = _stream_parse(@stream, @gl_buffer, @net_bytes_read_ptr)
+    # status = _stream_parse(@stream, @gl_buffer, @net_bytes_read_ptr)
+    status = _stream_parse_yuv(@stream, @gl_luma_buffer, @gl_chromaB_buffer, @gl_chromaR_buffer, @net_bytes_read_ptr)
     @fill = _stream_get_buff_fill(@stream)
     return { success: false, err: "Error parsing stream - #{status}" } if status isnt 0
-    gl_buffer = Module.HEAPU8.subarray(@gl_buffer, @gl_buffer + (@width * @height * 3))
+    # gl_buffer = Module.HEAPU8.subarray(@gl_buffer, @gl_buffer + (@width * @height * 3))
+    gl_luma_buffer = Module.HEAPU8.subarray(@gl_luma_buffer, @gl_luma_buffer + (@width * @height))
+    gl_chromaB_buffer = Module.HEAPU8.subarray(@gl_chromaB_buffer, @gl_chromaB_buffer + (@width/2 * @height/2))
+    gl_chromaR_buffer = Module.HEAPU8.subarray(@gl_chromaR_buffer, @gl_chromaR_buffer + (@width/2 * @height/2))
+
     net_bytes_read = Module.getValue(@net_bytes_read_ptr, 'i32')
     # console.log("Get Frame Status", status, net_bytes_read)
 
     # timer = new Date()
     # console.log("End - #{timer.getUTCMilliseconds()}")
 
-    gl_rgb_frame_buf: gl_buffer,
+    # gl_rgb_frame_buf: gl_buffer,
+    gl_luma_frame_buf: gl_luma_buffer,
+    gl_chromaB_frame_buf: gl_chromaB_buffer,
+    gl_chromaR_frame_buf: gl_chromaR_buffer,
     net_bytes_read: net_bytes_read
 
   Destroy: ->
@@ -72,6 +87,10 @@ class window.ZFRONT.ZCoderz extends window.Malefic.Stream
 
     Module._free(@header_buf_ptr) if @header_buf_ptr
 
-    Module._free(@gl_rgb_frame_buf) if @gl_frame_buf_ptr
+    Module._free(@gl_luma_buffer) if @gl_luma_buffer
+    Module._free(@gl_chromaB_buffer) if @gl_chromaB_buffer
+    Module._free(@gl_chromaR_buffer) if @gl_chromaR_buffer
+
+    Module._free(@gl_buffer) if @gl_buffer
 
     Module._free(@net_bytes_read_ptr) if @net_bytes_read_ptr

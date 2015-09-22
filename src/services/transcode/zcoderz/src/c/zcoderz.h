@@ -24,18 +24,6 @@ typedef struct {
   size_t net_buf_size;
   uint8_t *net_buf;
 
-  // size_t gl_luma_buf_fill;
-  // size_t gl_luma_buf_size;
-  // uint8_t *gl_luma_buf;
-  //
-  // size_t gl_chromaB_buf_fill;
-  // size_t gl_chromaB_buf_size;
-  // uint8_t *gl_chromaB_buf;
-  //
-  // size_t gl_chromaR_buf_fill;
-  // size_t gl_chromaR_buf_size;
-  // uint8_t *gl_chromaR_buf;
-
   vpx_codec_iter_t iter;
   vpx_codec_ctx_t codec;
   vp8_postproc_cfg_t postproc;
@@ -54,5 +42,6 @@ uint8_t stream_seek(Stream *stream, size_t index);
 uint8_t stream_write(Stream *stream, const uint8_t *data, const size_t data_size);
 uint8_t stream_write_chunk(Stream *stream, const uint8_t *data, const size_t data_size);
 uint8_t stream_parse(Stream *stream, uint8_t *gl_rgb_buf, size_t *net_bytes_read);
+uint8_t stream_parse_yuv(Stream *stream, uint8_t *gl_luma_buf, uint8_t *gl_chromaB_buf, uint8_t *gl_chromaR_buf, size_t *net_bytes_read);
 
 #endif
