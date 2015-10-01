@@ -198,7 +198,7 @@ uint8_t stream_parse_yuv(Stream *stream, uint8_t *gl_luma_buf, uint8_t *gl_chrom
     size_t frame_size = 0;
     const unsigned char *frame = vpx_video_stream_reader_get_frame(stream->reader, &frame_size);
     *net_bytes_read = frame_size + 12;
-    if (vpx_codec_decode(&stream->codec, frame, (unsigned int)frame_size, NULL, 0))
+    if (vpx_codec_decode(&stream->codec, frame, (unsigned int)frame_size, NULL, 16000))
       proc_warn("Failed to decode frame");
 
     vpx_image_t *img = NULL;

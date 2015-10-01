@@ -4,7 +4,7 @@ CONTAINER="EMSCRIPTEN"
 
 build() {
   echo "Building... $CONTAINER"
-  STDOUT=`docker build -t zfront/emscripten .`
+  docker build -t zfront/emscripten .
 }
 
 clean() {

@@ -231,7 +231,7 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
       0, # border
       @gl.LUMINANCE, #format
       @gl.UNSIGNED_BYTE, # type
-      frame.gl_luma_frame_buf # texture data
+      new Uint8Array(frame.gl_luma_frame_buf) # texture data
     )
 
     @gl.activeTexture(@gl.TEXTURE1)
@@ -245,7 +245,7 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
       0, # border
       @gl.LUMINANCE, #format
       @gl.UNSIGNED_BYTE, # type
-      frame.gl_chromaB_frame_buf # texture data
+      new Uint8Array(frame.gl_chromaB_frame_buf) # texture data
     )
 
     @gl.activeTexture(@gl.TEXTURE2)
@@ -259,7 +259,7 @@ class window.ZFRONT.ZPlayer extends window.Malefic.View
       0, # border
       @gl.LUMINANCE, #format
       @gl.UNSIGNED_BYTE, # type
-      frame.gl_chromaR_frame_buf # texture data
+      new Uint8Array(frame.gl_chromaR_frame_buf) # texture data
     )
 
     # @gl.texImage2D(

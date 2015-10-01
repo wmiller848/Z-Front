@@ -35,7 +35,7 @@ class window.ZFRONT.ZTransportHTTP extends window.Malefic.Core
       @paused = false
     @zstream.paused = false
 
-    @buffer_time = 300 # ms
+    @buffer_time = 400 # ms
     @Open?(@zstream)
 
     setTimeout( =>

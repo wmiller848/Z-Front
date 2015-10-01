@@ -42,9 +42,10 @@ RUN ./emsdk update
 RUN ./emsdk install latest
 RUN ./emsdk activate latest
 
+# RUN source emsdk_env.sh
 ENV PATH=$PATH:/opt/vendor/emsdk_portable
-ENV PATH=$PATH:/opt/vendor/emsdk_portable/clang/tag-e1.34.3/build_tag-e1.34.3_64/bin/
-ENV PATH=$PATH:/opt/vendor/emsdk_portable/emscripten/tag-1.34.3
-ENV EMSCRIPTEN=/opt/vendor/emsdk_portable/emscripten/tag-1.34.3
+ENV PATH=$PATH:/opt/vendor/emsdk_portable/clang/tag-e1.34.10/build_tag-e1.34.10_64/bin
+ENV PATH=$PATH:/opt/vendor/emsdk_portable/emscripten/tag-1.34.10
+ENV EMSCRIPTEN=/opt/vendor/emsdk_portable/emscripten/tag-1.34.10
 
 CMD /bin/bash -l

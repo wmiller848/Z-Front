@@ -20,7 +20,7 @@ ffmpeg -threads 0 -i swfa.mp4 -r 25 -c:v libvpx-vp9 -b:v 1200k -s 1920x1080 -asp
 
 720p (HD)
 ffmpeg -threads 0 -i swfa.mp4 -r 25 -c:v libvpx-vp9 -b:v 700k -s 1280x720 -aspect 16:9 swfa_out.ivf
-ffmpeg -threads 0 -i swfa.mp4 -c:v libvpx-vp9 -b:v 800k -s 1280x720 -aspect 16:9 swfa_out.ivf
+ffmpeg -threads 0 -i swfa.mp4 -c:v libvpx-vp9 -quality realtime -cpu-used 4 -b:v 800k -bufsize 1600k -qmin 10 -qmax 42 -vf scale=-1:720 swfa_out.ivf
 
 Wide 480p (SD)
 ffmpeg -threads 0 -i swfa.mp4 -r 25 -c:v libvpx-vp9 -b:v 300k -s 720x480 -aspect 16:9 swfa_out.ivf

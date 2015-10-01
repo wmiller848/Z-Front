@@ -31,16 +31,17 @@ RUN git checkout vpx_streams
 
 # This syntax makes emscripten unhappy
 RUN sed -i "s/\-rus/rus/" build/make/configure.sh
-RUN emconfigure ./configure\
+RUN extra_cflags="-s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4" emconfigure ./configure\
 #				--prefix=/usr
 #				--disable-examples --disable-docs\
+				--disable-unit-tests\
 				--disable-vp8-encoder --disable-vp9-encoder --disable-vp10-encoder\
 				--disable-runtime-cpu-detect\
 #				--disable-optimizations\
-				--disable-multithread\
+#				--disable-multithread\
 				--enable-error-concealment --enable-postproc\
 				--enable-coefficient-range-checking\
-				--enable-realtime-only --enable-onthefly-bitpacking\
+#				--enable-realtime-only --enable-onthefly-bitpacking\
 				--target=generic-gnu
 RUN emmake make -j7
 
@@ -61,14 +62,6 @@ RUN sed -i "s/die(/proc_die(/" /opt/vendor/libvpx/ivfdec.c;\
 		sed -i "s/fatal(/proc_fatal(/" /opt/vendor/libvpx/video_reader.c;\
 		sed -i "s/warn(/proc_warn(/" /opt/vendor/libvpx/video_reader.c;\
 		sed -i "s/info(/proc_info(/" /opt/vendor/libvpx/video_reader.c
-
-#RUN ./configure\
-#				--prefix=/usr\
-#				--disable-examples --disable-docs\
-#				--disable-runtime-cpu-detect\
-#				--disable-multithread --disable-optimizations
-#				--target=generic-gnu
-#RUN make
 
 #########
 ## Libyuv

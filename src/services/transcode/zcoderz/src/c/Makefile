@@ -45,7 +45,7 @@ javascript: libzcoderz_test.js
 libzcoderz_test.js: libzcoderz.bc
 	$(EMCC) -$(COPT) -c $(CFLAGS) zcoderz_test.c -o ./build/zcoderz_test.bc
 	$(EMCC) -$(COPT) -static -L$(LIBVPX) -L$(LIBYUV) -L$(LIBOPUS) ./build/zcoderz_test.bc ./build/libzcoderz.bc\
-					-o ./build/libzcoderz_test.js -lvpx -lyuv -lopus
+					-o ./build/libzcoderz_test.js -lvpx -lyuv -lopus -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 --std=c++11
 
 ##
 ##
@@ -55,12 +55,12 @@ libzcoderz.bc: zcoderz.c /opt/vendor/libvpx/libvpx.a
 	$(EMCC) -$(COPT) -c $(CFLAGS) $(LIBVPX)ivfdec.c -o ./build/ivfdec.bc
 	$(EMCC) -$(COPT) -c $(CFLAGS) $(LIBVPX)tools_common.c -o ./build/tools_common.bc
 	$(EMCC) -$(COPT) -c $(CFLAGS) $(LIBVPX)video_stream_reader.c -o ./build/video_stream_reader.bc
-	$(EMCC) -$(COPT) -c $(CFLAGS) zcoderz.c -o ./build/zcoderz.bc
+	$(EMCC) -$(COPT) -c $(CFLAGS) zcoderz.c -o ./build/zcoderz.bc -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
 	$(EMCC) -$(COPT) -static -L$(LIBVPX) -L$(LIBYUV) -L$(LIBOPUS) ./build/zcoderz.bc ./build/ivfdec.bc\
 					./build/tools_common.bc ./build/video_stream_reader.bc\
-					-o ./build/libzcoderz.bc -lvpx -lyuv -lopus
+					-o ./build/libzcoderz.bc -lvpx -lyuv -lopus -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
 	$(EMCC) -$(COPT) -static -L$(LIBVPX) -s EXPORTED_FUNCTIONS=$(EXP_FUNCS)\
-					./build/libzcoderz.bc -o ./build/libzcoderz.js
+					./build/libzcoderz.bc -o ./build/libzcoderz.js -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
 
 clean:
 	rm -rf build
